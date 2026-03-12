@@ -1,0 +1,25 @@
+{
+  "name": "notag-bot",
+  "version": "2.0.0",
+  "description": "NOTAG Bot - Sistema completo de gerenciamento de guild Albion Online",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "db:migrate": "node scripts/migrate.js"
+  },
+  "dependencies": {
+    "axios": "^1.13.6",
+    "chart.js": "^4.5.1",
+    "discord.js": "^14.25.1",
+    "dotenv": "^16.6.1",
+    "sqlite3": "^5.1.7",
+    "winston": "^3.19.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
