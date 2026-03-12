@@ -172,7 +172,7 @@ class EventPanel {
       console.log(`✅ Painel de eventos enviado em ${channel.name}`);
       return true;
     } catch (error) {
-      console.error('❌ Erro ao enviar painel de eventos:', error);
+      console.error('❌ Erro ao enviar o painel de eventos:', error);
       return false;
     }
   }
