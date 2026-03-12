@@ -301,7 +301,7 @@ class RaidAvalonHandler {
 
       // Completar dados da raid
       raidData.id = eventId;
-      raidData.guildId = guild.id; // ✅ CORREÇÃO: Adicionado guildId
+      raidData.guildId = guild.id;
       raidData.criadorId = interaction.user.id;
       raidData.criadorTag = interaction.user.tag;
       raidData.canalVozId = canalVoz.id;
@@ -422,7 +422,7 @@ class RaidAvalonHandler {
     const embed = new EmbedBuilder()
       .setTitle(`${statusEmojis[raidData.status] || '⏳'} 🏰 RAID AVALON ┃ ${raidData.nome}`)
       .setDescription(
-        `\> ${raidData.descricao}\n\n` +
+        `\\> ${raidData.descricao}\n\n` +
         `**👤 Criador:** <@${raidData.criadorId}>\n` +
         `**🕐 Horário:** \`${raidData.horario}\`\n` +
         `**📊 Status:** ${raidData.status === 'aguardando' ? 'Aguardando' : 'Em Andamento'}\n` +
@@ -486,7 +486,7 @@ class RaidAvalonHandler {
       rows.push(new ActionRowBuilder().addComponents(selectMenu));
     }
 
-    // Botões de controle (apenas criador/staff)
+    // Botões de controle (apenas criador - CORREÇÃO APLICADA)
     const controleRow = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`raid_iniciar_${raidData.id}`)
@@ -746,7 +746,7 @@ class RaidAvalonHandler {
   }
 
   /**
-   * Handlers para botões de controle
+   * Handlers para botões de controle - CORREÇÃO: Apenas criador pode usar
    */
   static async handleIniciar(interaction, raidId) {
     try {
@@ -755,12 +755,10 @@ class RaidAvalonHandler {
         return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
-      const isCriador = interaction.user.id === raidData.criadorId;
-      const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
-
-      if (!isCriador && !isStaff) {
+      // ✅ CORREÇÃO: Apenas o criador pode iniciar (removido isStaff)
+      if (interaction.user.id !== raidData.criadorId) {
         return interaction.reply({
-          content: '❌ Apenas o criador ou staff pode iniciar!',
+          content: '❌ Apenas o criador da raid pode iniciar!',
           ephemeral: true
         });
       }
@@ -831,12 +829,10 @@ class RaidAvalonHandler {
         return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
-      const isCriador = interaction.user.id === raidData.criadorId;
-      const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
-
-      if (!isCriador && !isStaff) {
+      // ✅ CORREÇÃO: Apenas o criador pode finalizar (removido isStaff)
+      if (interaction.user.id !== raidData.criadorId) {
         return interaction.reply({
-          content: '❌ Apenas o criador ou staff pode finalizar!',
+          content: '❌ Apenas o criador da raid pode finalizar!',
           ephemeral: true
         });
       }
@@ -907,7 +903,7 @@ class RaidAvalonHandler {
       // ✅ CORREÇÃO: Garantir guildId ao salvar em finishedEvents
       global.finishedEvents.set(raidId, {
         ...raidData,
-        guildId: raidData.guildId || interaction.guild.id, // Garantir guildId
+        guildId: raidData.guildId || interaction.guild.id,
         participantes: participantesMap,
         finalizadoEm: Date.now()
       });
@@ -933,12 +929,10 @@ class RaidAvalonHandler {
         return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
-      const isCriador = interaction.user.id === raidData.criadorId;
-      const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
-
-      if (!isCriador && !isStaff) {
+      // ✅ CORREÇÃO: Apenas o criador pode cancelar (removido isStaff)
+      if (interaction.user.id !== raidData.criadorId) {
         return interaction.reply({
-          content: '❌ Apenas o criador ou staff pode cancelar!',
+          content: '❌ Apenas o criador da raid pode cancelar!',
           ephemeral: true
         });
       }
