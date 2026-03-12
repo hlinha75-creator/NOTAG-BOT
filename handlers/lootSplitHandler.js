@@ -3,11 +3,13 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
-  ChannelType,
-  PermissionFlagsBits
+  PermissionFlagsBits,
+  ChannelType
 } = require('discord.js');
 const Database = require('../utils/database');
 const XpHandler = require('./xpHandler');
@@ -19,17 +21,21 @@ class LootSplitHandler {
     this.pendingApprovals = new Map();
   }
 
+  // ✅ CONSTANTES DE XP
   static XP_RATES = {
-    EVENTO_NORMAL: 1,
-    RAID_AVALON: 2
+    EVENTO_NORMAL: 1, // 1 XP por minuto
+    RAID_AVALON: 2 // 2 XP por minuto (dobro)
   };
 
+  // ✅ FUNÇÃO AUXILIAR: Formatar tempo em HH:MM:SS
   static formatTime(milliseconds) {
     if (!milliseconds || milliseconds <= 0) return '00:00:00';
+
     const totalSeconds = Math.floor(milliseconds / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
+
     const pad = (num) => num.toString().padStart(2, '0');
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   }
@@ -109,6 +115,7 @@ class LootSplitHandler {
         });
       }
 
+      // ✅ CORREÇÃO: Capturar e validar guildId
       const guildId = eventData.guildId || interaction.guild?.id;
       if (!guildId) {
         console.error(`[LootSplit] Erro: guildId não encontrado para evento ${eventId}`);
@@ -123,6 +130,7 @@ class LootSplitHandler {
       const config = global.guildConfig?.get(guildId) || {};
       const taxaGuilda = config.taxaGuilda || 10;
 
+      // Calcular tempo total do evento
       let tempoTotalEvento = 0;
       if (eventData.inicioTimestamp && eventData.finalizadoEm) {
         tempoTotalEvento = eventData.finalizadoEm - eventData.inicioTimestamp;
@@ -174,7 +182,7 @@ class LootSplitHandler {
       const simulationData = {
         id: simulationId,
         eventId: eventId,
-        guildId: guildId,
+        guildId: guildId, // ✅ Sempre salvar guildId
         canalEventoId: interaction.channel.id,
         criadorId: interaction.user.id,
         valorTotal,
@@ -269,6 +277,338 @@ class LootSplitHandler {
     });
 
     return embed;
+  }
+
+  // ✅ NOVO: Handler para atualizar participação (estilo ORB-XP)
+  static async handleAtualizarParticipacao(interaction, simulationId) {
+    try {
+      console.log(`[LootSplit] Atualizar participação solicitada para ${simulationId}`);
+
+      const simulation = global.simulations?.get(simulationId);
+      if (!simulation) {
+        return interaction.reply({
+          content: '❌ Simulação não encontrada!',
+          ephemeral: true
+        });
+      }
+
+      // Verificar se é criador ou staff
+      const isCriador = interaction.user.id === simulation.criadorId;
+      const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
+
+      if (!isCriador && !isStaff) {
+        return interaction.reply({
+          content: '❌ Apenas o criador do evento ou Staff pode atualizar participações!',
+          ephemeral: true
+        });
+      }
+
+      // Criar lista de participantes para seleção (igual ORB-XP)
+      if (simulation.distribuicao.length === 0) {
+        return interaction.reply({
+          content: '❌ Não há participantes nesta simulação!',
+          ephemeral: true
+        });
+      }
+
+      // Criar opções para o select menu (máximo 25 por limitação do Discord)
+      const options = simulation.distribuicao.map((participante, index) => {
+        return new StringSelectMenuOptionBuilder()
+          .setLabel(`${participante.nick} (Atual: ${participante.percentagem}%)`)
+          .setValue(participante.userId)
+          .setDescription(`Valor atual: ${participante.valor.toLocaleString()}`)
+          .setEmoji('👤');
+      });
+
+      const selectMenu = new StringSelectMenuBuilder()
+        .setCustomId(`loot_select_users_${simulationId}`)
+        .setPlaceholder('👥 Selecione um ou mais jogadores...')
+        .setMinValues(1)
+        .setMaxValues(Math.min(options.length, 25))
+        .addOptions(options);
+
+      const row1 = new ActionRowBuilder().addComponents(selectMenu);
+
+      // Botões de controle (igual ORB-XP)
+      const row2 = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId(`loot_clear_users_${simulationId}`)
+          .setLabel('🗑️ Limpar Seleção')
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+          .setCustomId(`loot_proceed_taxa_${simulationId}`)
+          .setLabel('➡️ Definir Taxa')
+          .setStyle(ButtonStyle.Success)
+      );
+
+      // Guardar estado temporário
+      if (!global.lootTemp) global.lootTemp = new Map();
+      global.lootTemp.set(interaction.user.id, {
+        simulationId: simulationId,
+        selectedUsers: [],
+        originalSimulation: JSON.parse(JSON.stringify(simulation))
+      });
+
+      const embed = new EmbedBuilder()
+        .setTitle('⚙️ Atualizar Participação - Seleção de Jogadores')
+        .setDescription(
+          `**Simulação:** ${simulation.eventoNome}\n\n` +
+          `📋 **Participantes disponíveis:** ${simulation.distribuicao.length}\n\n` +
+          `👆 **Selecione os jogadores** que deseja ajustar a participação.\n` +
+          `💡 Você pode selecionar múltiplos jogadores ao mesmo tempo.\n\n` +
+          `Após selecionar, clique em **"➡️ Definir Taxa"** para informar a porcentagem.`
+        )
+        .setColor(0x3498DB)
+        .setFooter({ text: 'Passo 1 de 2: Seleção de Jogadores' });
+
+      await interaction.reply({
+        embeds: [embed],
+        components: [row1, row2],
+        ephemeral: true
+      });
+
+    } catch (error) {
+      console.error(`[LootSplit] Error in handleAtualizarParticipacao:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao abrir atualização de participação.',
+        ephemeral: true
+      });
+    }
+  }
+
+  // ✅ NOVO: Processar seleção de usuários (igual ORB-XP)
+  static async processUserSelection(interaction, simulationId) {
+    try {
+      const selectedUsers = interaction.values;
+
+      // Atualizar estado temporário
+      if (!global.lootTemp) global.lootTemp = new Map();
+      const tempData = global.lootTemp.get(interaction.user.id) || {
+        simulationId: simulationId,
+        selectedUsers: [],
+        originalSimulation: null
+      };
+
+      tempData.selectedUsers = [...new Set([...tempData.selectedUsers, ...selectedUsers])];
+      global.lootTemp.set(interaction.user.id, tempData);
+
+      const simulation = global.simulations?.get(simulationId);
+      const nomesSelecionados = simulation.distribuicao
+        .filter(p => tempData.selectedUsers.includes(p.userId))
+        .map(p => p.nick);
+
+      await interaction.update({
+        content: `✅ **${nomesSelecionados.length} jogador(es) selecionado(s):** ${nomesSelecionados.join(', ')}\n\nClique em **"➡️ Definir Taxa"** para continuar.`,
+        components: interaction.message.components
+      });
+
+    } catch (error) {
+      console.error(`[LootSplit] Error in processUserSelection:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao processar seleção.',
+        ephemeral: true
+      });
+    }
+  }
+
+  // ✅ NOVO: Limpar seleção de usuários
+  static async clearUserSelection(interaction, simulationId) {
+    try {
+      if (!global.lootTemp) global.lootTemp = new Map();
+      const tempData = global.lootTemp.get(interaction.user.id);
+
+      if (tempData) {
+        tempData.selectedUsers = [];
+        global.lootTemp.set(interaction.user.id, tempData);
+      }
+
+      await interaction.update({
+        content: '🗑️ Seleção limpa! Selecione os jogadores novamente.',
+        components: interaction.message.components
+      });
+
+    } catch (error) {
+      console.error(`[LootSplit] Error in clearUserSelection:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao limpar seleção.',
+        ephemeral: true
+      });
+    }
+  }
+
+  // ✅ NOVO: Abrir modal para definir taxa (igual ORB-XP)
+  static async openTaxaModal(interaction, simulationId) {
+    try {
+      const tempData = global.lootTemp?.get(interaction.user.id);
+
+      if (!tempData || tempData.selectedUsers.length === 0) {
+        return interaction.reply({
+          content: '❌ Selecione pelo menos um jogador primeiro!',
+          ephemeral: true
+        });
+      }
+
+      const modal = new ModalBuilder()
+        .setCustomId(`modal_taxa_participacao_${simulationId}`)
+        .setTitle('⚙️ Definir Taxa de Participação');
+
+      const taxaInput = new TextInputBuilder()
+        .setCustomId('taxa_participacao')
+        .setLabel('Taxa de participação (%)')
+        .setPlaceholder('Ex: 50 para 50%, 100 para 100%, 0 para 0%')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true)
+        .setMaxLength(3);
+
+      modal.addComponents(new ActionRowBuilder().addComponents(taxaInput));
+
+      await interaction.showModal(modal);
+
+    } catch (error) {
+      console.error(`[LootSplit] Error in openTaxaModal:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao abrir modal de taxa.',
+        ephemeral: true
+      });
+    }
+  }
+
+  // ✅ NOVO: Processar a taxa e atualizar a simulação
+  static async processTaxaUpdate(interaction, simulationId) {
+    try {
+      const taxa = parseInt(interaction.fields.getTextInputValue('taxa_participacao'));
+
+      if (isNaN(taxa) || taxa < 0 || taxa > 100) {
+        return interaction.reply({
+          content: '❌ Taxa inválida! Digite um número entre 0 e 100.',
+          ephemeral: true
+        });
+      }
+
+      const tempData = global.lootTemp?.get(interaction.user.id);
+      if (!tempData || tempData.selectedUsers.length === 0) {
+        return interaction.reply({
+          content: '❌ Erro: Dados de seleção não encontrados!',
+          ephemeral: true
+        });
+      }
+
+      const simulation = global.simulations?.get(simulationId);
+      if (!simulation) {
+        return interaction.reply({
+          content: '❌ Simulação não encontrada!',
+          ephemeral: true
+        });
+      }
+
+      // Calcular novo valor baseado na taxa
+      const novoValorPorPessoa = Math.floor((simulation.valorDistribuir * (taxa / 100)) / tempData.selectedUsers.length);
+
+      // Atualizar distribuição
+      simulation.distribuicao = simulation.distribuicao.map(p => {
+        if (tempData.selectedUsers.includes(p.userId)) {
+          const diferenca = novoValorPorPessoa - p.valor;
+          p.valor = novoValorPorPessoa;
+          p.percentagem = taxa.toFixed(2);
+          p.taxaAjustada = true;
+          p.diferenca = diferenca;
+        }
+        return p;
+      });
+
+      // Recalcular restante do valor (redistribuir entre os não selecionados)
+      const valorAjustado = tempData.selectedUsers.length * novoValorPorPessoa;
+      const valorRestante = simulation.valorDistribuir - valorAjustado;
+      const naoSelecionados = simulation.distribuicao.filter(p => !tempData.selectedUsers.includes(p.userId));
+
+      if (naoSelecionados.length > 0 && valorRestante > 0) {
+        const valorPorNaoSelecionado = Math.floor(valorRestante / naoSelecionados.length);
+        simulation.distribuicao = simulation.distribuicao.map(p => {
+          if (!tempData.selectedUsers.includes(p.userId)) {
+            p.valor = valorPorNaoSelecionado;
+            // Recalcular percentagem baseado no tempo original
+            const percentagem = simulation.tempoTotalEvento > 0 ? 
+              ((p.tempo || 0) / simulation.tempoTotalEvento) * 100 : 0;
+            p.percentagem = Math.min(percentagem, 100).toFixed(2);
+          }
+          return p;
+        });
+      }
+
+      // Atualizar global
+      global.simulations.set(simulationId, simulation);
+
+      // Limpar temp
+      global.lootTemp.delete(interaction.user.id);
+
+      // Criar resumo
+      const nomesAjustados = simulation.distribuicao
+        .filter(p => tempData.selectedUsers.includes(p.userId))
+        .map(p => `${p.nick} (${taxa}%)`);
+
+      const embed = new EmbedBuilder()
+        .setTitle('✅ Participações Atualizadas')
+        .setDescription(
+          `**Taxa aplicada:** ${taxa}%\n\n` +
+          `**Jogadores ajustados (${tempData.selectedUsers.length}):**\n${nomesAjustados.join('\n')}\n\n` +
+          `💰 **Valor por pessoa:** ${novoValorPorPessoa.toLocaleString()} pratas\n` +
+          `📊 **Valor restante distribuído entre outros participantes**`
+        )
+        .setColor(0x2ECC71);
+
+      // Atualizar painel original
+      let eventData = global.activeEvents.get(simulation.eventId) || global.finishedEvents?.get(simulation.eventId);
+      const updatedEmbed = this.createSimulationEmbed(simulation, eventData);
+
+      // Atualizar mensagem original da simulação
+      try {
+        const channel = interaction.channel;
+        const messages = await channel.messages.fetch({ limit: 20 });
+        const simMessage = messages.find(m => 
+          m.embeds.length > 0 && 
+          m.embeds[0].title?.includes('SIMULAÇÃO DE DIVISÃO DE LOOT') &&
+          m.components.length > 0
+        );
+
+        if (simMessage) {
+          const botoes = new ActionRowBuilder()
+            .addComponents(
+              new ButtonBuilder()
+                .setCustomId(`loot_enviar_${simulationId}`)
+                .setLabel('📤 Enviar para Financeiro')
+                .setStyle(ButtonStyle.Success),
+              new ButtonBuilder()
+                .setCustomId(`loot_recalcular_${simulationId}`)
+                .setLabel('🔄 Recalcular')
+                .setStyle(ButtonStyle.Primary),
+              new ButtonBuilder()
+                .setCustomId(`loot_atualizar_part_${simulationId}`)
+                .setLabel('⚙️ Atualizar Participação')
+                .setStyle(ButtonStyle.Secondary)
+            );
+
+          await simMessage.edit({
+            embeds: [updatedEmbed],
+            components: [botoes]
+          });
+        }
+      } catch (e) {
+        console.log('[LootSplit] Não foi possível atualizar mensagem original:', e.message);
+      }
+
+      await interaction.reply({
+        content: '',
+        embeds: [embed],
+        ephemeral: true
+      });
+
+    } catch (error) {
+      console.error(`[LootSplit] Error in processTaxaUpdate:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao processar taxa.',
+        ephemeral: true
+      });
+    }
   }
 
   static async handleEnviar(interaction, simulationId) {

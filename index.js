@@ -34,8 +34,8 @@ const XpHandler = require('./handlers/xpHandler');
 const XpEventHandler = require('./handlers/xpEventHandler');
 const RaidAvalonHandler = require('./handlers/raidAvalonHandler');
 const KillboardHandler = require('./handlers/killboardHandler');
-const MarketHandler = require('./handlers/marketHandler'); // 🛒 NOVO
-const MarketApi = require('./handlers/albionMarketApi'); // 🛒 NOVO
+const MarketHandler = require('./handlers/marketHandler');
+const MarketApi = require('./handlers/albionMarketApi');
 
 // ==================== IMPORTAR COMANDOS ====================
 const instalarCommand = require('./commands/instalar');
@@ -96,10 +96,11 @@ global.pendingBauSales = new Map();
 global.client = client;
 global.xpDepositTemp = new Map();
 global.killboardProcessedEvents = new Map();
-global.marketSearches = new Map(); // 🛒 NOVO: Armazenar buscas de mercado
-global.depositTemp = new Map(); // 💵 NOVO: Temporários para sistema de depósito direto
+global.marketSearches = new Map();
+global.depositTemp = new Map();
+global.lootTemp = new Map(); // ✅ NOVO: Temporários para atualização de participação
 
-// Carregar dados persistidos (blacklist e histórico)
+// Carregar dados persistidos
 try {
   if (!fs.existsSync('./data')) {
     fs.mkdirSync('./data', { recursive: true });
@@ -141,7 +142,6 @@ client.once(Events.ClientReady, async () => {
   EventHandler.initialize();
   console.log('📝 Sistemas inicializados: Database + Registro + Eventos');
 
-  // 🛒 NOVO: Inicializar cache de itens do mercado
   try {
     console.log('🛒 Inicializando sistema de mercado...');
     await MarketApi.loadItemsCache();
@@ -168,7 +168,6 @@ client.once(Events.ClientReady, async () => {
     console.error('❌ Erro ao iniciar killboards:', error);
   }
 
-  // Registrar Slash Commands
   const commands = [
     instalarCommand.data.toJSON(),
     desistalarCommand.data.toJSON(),
@@ -197,7 +196,7 @@ client.once(Events.ClientReady, async () => {
   }
 });
 
-// ==================== VERIFICAÇÃO DE ENTRADA EM CALL DE EVENTO ====================
+// ==================== VERIFICAÇÃO DE ENTRADA EM CALL ====================
 client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   try {
     if (!newState.channelId) return;
@@ -281,7 +280,7 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
   }
 });
 
-// ==================== HANDLER PRINCIPAL DE INTERAÇÕES ====================
+// ==================== HANDLER PRINCIPAL ====================
 client.on(Events.InteractionCreate, async interaction => {
   try {
     // COMANDOS SLASH
@@ -293,7 +292,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // Verificar permissões específicas
       if (command.data.name === 'instalar' || command.data.name === 'desistalar') {
         const isADM = interaction.member.roles.cache.some(r => r.name === 'ADM') ||
           interaction.member.permissions.has(PermissionFlagsBits.Administrator);
@@ -331,8 +329,8 @@ client.on(Events.InteractionCreate, async interaction => {
       const customId = interaction.customId;
 
       if (customId === 'confirmar_limpar_eventos' || customId === 'cancelar_limpar_eventos' ||
-        customId === 'confirmar_limpar_saldo' || customId === 'cancelar_limpar_saldo' ||
-        customId === 'confirmar_limpar_xp' || customId === 'cancelar_limpar_xp') {
+          customId === 'confirmar_limpar_saldo' || customId === 'cancelar_limpar_saldo' ||
+          customId === 'confirmar_limpar_xp' || customId === 'cancelar_limpar_xp') {
         return;
       }
 
@@ -374,7 +372,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 🛒 MERCADO ALBION - NOVO SISTEMA DE NAVEGAÇÃO
+      // MERCADO
       if (customId === 'market_browse_category') {
         await MarketHandler.handleBrowseCategory(interaction);
         return;
@@ -561,7 +559,25 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // LOOTSPLIT - Parte 1: Simulação e envio (antes dos aprovadores genéricos)
+      // LOOTSPLIT - ✅ NOVOS HANDLERS PARA ATUALIZAR PARTICIPAÇÃO
+      if (customId.startsWith('loot_atualizar_part_')) {
+        const simulationId = customId.replace('loot_atualizar_part_', '');
+        await LootSplitHandler.handleAtualizarParticipacao(interaction, simulationId);
+        return;
+      }
+
+      if (customId.startsWith('loot_clear_users_')) {
+        const simulationId = customId.replace('loot_clear_users_', '');
+        await LootSplitHandler.clearUserSelection(interaction, simulationId);
+        return;
+      }
+
+      if (customId.startsWith('loot_proceed_taxa_')) {
+        const simulationId = customId.replace('loot_proceed_taxa_', '');
+        await LootSplitHandler.openTaxaModal(interaction, simulationId);
+        return;
+      }
+
       if (customId.startsWith('loot_simular_')) {
         const eventId = customId.replace('loot_simular_', '');
         const modal = LootSplitHandler.createSimulationModal(eventId);
@@ -581,7 +597,30 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // DEPÓSITO - Sistema Antigo (mantido para compatibilidade)
+      if (customId.startsWith('fin_aprovar_')) {
+        const simulationId = customId.replace('fin_aprovar_', '');
+        await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, true);
+        return;
+      }
+
+      if (customId.startsWith('fin_recusar_')) {
+        const simulationId = customId.replace('fin_recusar_', '');
+        await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, false);
+        return;
+      }
+
+      if (customId.startsWith('loot_arquivar_')) {
+        const simulationId = customId.replace('loot_arquivar_', '');
+        const simulation = global.simulations?.get(simulationId);
+        if (simulation) {
+          await LootSplitHandler.handleArquivar(interaction, simulation.eventId, simulationId);
+        } else {
+          await interaction.reply({ content: '❌ Simulação não encontrada!', ephemeral: true });
+        }
+        return;
+      }
+
+      // DEPÓSITO
       if (customId === 'btn_deposito_novo') {
         await DepositHandler.handleDepositoButton(interaction);
         return;
@@ -597,7 +636,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 💵 NOVO SISTEMA DE DEPÓSITO - FLUXO DE SELEÇÃO DE USUÁRIOS
       if (customId === 'dep_select_users') {
         await DepositHandler.openUserSelection(interaction);
         return;
@@ -613,7 +651,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // Sistema antigo de aprovação (mantido para compatibilidade com depósitos pendentes antigos)
       if (customId.startsWith('dep_aprovar_')) {
         const parts = customId.split('_');
         const depositId = parts[2];
@@ -673,11 +710,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // ============================================================
-      // ✅ CORREÇÃO: FINANCEIRO (Saque/Emprestimo) - VEM ANTES DOS GENÉRICOS
-      // ============================================================
-
-      // FINANCEIRO - SAQUES (condições específicas primeiro!)
+      // FINANCEIRO
       if (customId.startsWith('fin_confirmar_saque_')) {
         const withdrawalId = customId.replace('fin_confirmar_saque_', '');
         await FinanceHandler.handleConfirmWithdrawal(interaction, withdrawalId);
@@ -702,41 +735,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // ============================================================
-      // LOOTSPLIT - Aprovação Financeira (condições mais genéricas por último!)
-      // ⚠️ IMPORTANTE: Verificar se NÃO é saque/emprestimo antes de processar como simulação
-      // ============================================================
-
-      if (customId.startsWith('fin_aprovar_')) {
-        const simulationId = customId.replace('fin_aprovar_', '');
-        // ✅ CORREÇÃO: Verificar se é um ID de simulação válido (não começa com "saque_" ou "emprestimo_")
-        if (!simulationId.startsWith('saque_') && !simulationId.startsWith('emprestimo_')) {
-          await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, true);
-          return;
-        }
-      }
-
-      if (customId.startsWith('fin_recusar_')) {
-        const simulationId = customId.replace('fin_recusar_', '');
-        // ✅ CORREÇÃO: Verificar se é um ID de simulação válido (não começa com "saque_" ou "emprestimo_")
-        if (!simulationId.startsWith('saque_') && !simulationId.startsWith('emprestimo_')) {
-          await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, false);
-          return;
-        }
-      }
-
-      if (customId.startsWith('loot_arquivar_')) {
-        const simulationId = customId.replace('loot_arquivar_', '');
-        const simulation = global.simulations?.get(simulationId);
-        if (simulation) {
-          await LootSplitHandler.handleArquivar(interaction, simulation.eventId, simulationId);
-        } else {
-          await interaction.reply({ content: '❌ Simulação não encontrada!', ephemeral: true });
-        }
-        return;
-      }
-
-      // TRANSFERÊNCIAS
       if (customId.startsWith('transf_aceitar_')) {
         const transferId = customId.replace('transf_aceitar_', '');
         await FinanceHandler.handleAcceptTransfer(interaction, transferId);
@@ -749,7 +747,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // ALBION ACADEMY / PERFIL
+      // ALBION ACADEMY
       if (customId === 'btn_criar_xp_event') {
         await XpEventHandler.showCreateEventModal(interaction);
         return;
@@ -950,6 +948,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // SELECT MENUS
     if (interaction.isStringSelectMenu()) {
+      // ✅ NOVO: LOOTSPLIT - Seleção de usuários para atualizar participação
+      if (interaction.customId.startsWith('loot_select_users_')) {
+        const simulationId = interaction.customId.replace('loot_select_users_', '');
+        await LootSplitHandler.processUserSelection(interaction, simulationId);
+        return;
+      }
+
       if (interaction.customId === 'select_server_registro') {
         await RegistrationModal.processServerSelect(interaction);
         return;
@@ -1027,7 +1032,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 🛒 MERCADO - Navegação por Categoria
+      // MERCADO
       if (interaction.customId.startsWith('market_select_category_')) {
         const searchId = interaction.customId.replace('market_select_category_', '');
         const category = interaction.values[0];
@@ -1082,7 +1087,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 💵 NOVO: DEPÓSITO - Seleção de usuários
       if (interaction.customId === 'dep_select_users_menu') {
         await DepositHandler.processUserSelection(interaction);
         return;
@@ -1091,6 +1095,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // MODALS
     if (interaction.isModalSubmit()) {
+      // ✅ NOVO: LOOTSPLIT - Processar taxa de participação
+      if (interaction.customId.startsWith('modal_taxa_participacao_')) {
+        const simulationId = interaction.customId.replace('modal_taxa_participacao_', '');
+        await LootSplitHandler.processTaxaUpdate(interaction, simulationId);
+        return;
+      }
+
       if (interaction.customId === 'modal_registro') {
         const nick = interaction.fields.getTextInputValue('reg_nick').trim();
         const erros = await RegistrationActions.checkExistingRegistration(
@@ -1164,7 +1175,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 💵 DEPÓSITO - Novo fluxo (valor normal, sem milhões)
       if (interaction.customId === 'modal_deposito_valor') {
         await DepositHandler.processDeposito(interaction);
         return;
@@ -1191,7 +1201,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // KILLBOARD
       if (interaction.customId === 'modal_killboard_config') {
         const guildId = interaction.fields.getTextInputValue('albion_guild_id');
         await interaction.deferReply({ ephemeral: true });
@@ -1250,7 +1259,6 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 🛒 MERCADO - Busca Avançada
       if (interaction.customId === 'market_modal_search') {
         await MarketHandler.processSearchModal(interaction);
         return;
