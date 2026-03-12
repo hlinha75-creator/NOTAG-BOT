@@ -14,7 +14,7 @@ class ConfigPanel {
 
     return new EmbedBuilder()
       .setTitle('⚙️ **PAINEL DE CONFIGURAÇÕES**')
-      .setDescription('Configure as opções do bot para este servidor.\n\n*Apenas membros com cargo **ADM** podem alterar estas configurações.*')
+      .setDescription('Configure as opções do bot para este servidor.\n\n*Apenas membros com o cargo **ADM** podem alterar estas configurações.*')
       .setColor(0x3498DB)
       .addFields(
         {
