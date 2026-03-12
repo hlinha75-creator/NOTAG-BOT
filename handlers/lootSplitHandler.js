@@ -15,6 +15,10 @@ const Database = require('../utils/database');
 const XpHandler = require('./xpHandler');
 const XpEventHandler = require('./xpEventHandler');
 
+/**
+ * Handler para divisão de loot (LootSplit)
+ * Gerencia simulações, aprovações financeiras e arquivamento de eventos
+ */
 class LootSplitHandler {
   constructor() {
     this.simulations = new Map();
@@ -39,6 +43,8 @@ class LootSplitHandler {
     const pad = (num) => num.toString().padStart(2, '0');
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   }
+
+  // ==================== MODAIS ====================
 
   static createSimulationModal(eventId) {
     const modal = new ModalBuilder()
@@ -77,6 +83,8 @@ class LootSplitHandler {
 
     return modal;
   }
+
+  // ==================== PROCESSAMENTO ====================
 
   static async processSimulation(interaction, eventId) {
     try {
@@ -182,7 +190,7 @@ class LootSplitHandler {
       const simulationData = {
         id: simulationId,
         eventId: eventId,
-        guildId: guildId, // ✅ Sempre salvar guildId
+        guildId: guildId,
         canalEventoId: interaction.channel.id,
         criadorId: interaction.user.id,
         valorTotal,
@@ -237,6 +245,8 @@ class LootSplitHandler {
     }
   }
 
+  // ==================== EMBEDS ====================
+
   static createSimulationEmbed(simulation, eventData) {
     const tempoTotalEvento = simulation.tempoTotalEvento || 0;
     const tempoTotalFormatado = this.formatTime(tempoTotalEvento);
@@ -279,7 +289,8 @@ class LootSplitHandler {
     return embed;
   }
 
-  // ✅ NOVO: Handler para atualizar participação (estilo ORB-XP)
+  // ==================== ATUALIZAR PARTICIPAÇÃO (NOVO - ESTILO ORB-XP) ====================
+
   static async handleAtualizarParticipacao(interaction, simulationId) {
     try {
       console.log(`[LootSplit] Atualizar participação solicitada para ${simulationId}`);
@@ -376,7 +387,6 @@ class LootSplitHandler {
     }
   }
 
-  // ✅ NOVO: Processar seleção de usuários (igual ORB-XP)
   static async processUserSelection(interaction, simulationId) {
     try {
       const selectedUsers = interaction.values;
@@ -411,7 +421,6 @@ class LootSplitHandler {
     }
   }
 
-  // ✅ NOVO: Limpar seleção de usuários
   static async clearUserSelection(interaction, simulationId) {
     try {
       if (!global.lootTemp) global.lootTemp = new Map();
@@ -436,7 +445,6 @@ class LootSplitHandler {
     }
   }
 
-  // ✅ NOVO: Abrir modal para definir taxa (igual ORB-XP)
   static async openTaxaModal(interaction, simulationId) {
     try {
       const tempData = global.lootTemp?.get(interaction.user.id);
@@ -473,7 +481,6 @@ class LootSplitHandler {
     }
   }
 
-  // ✅ NOVO: Processar a taxa e atualizar a simulação
   static async processTaxaUpdate(interaction, simulationId) {
     try {
       const taxa = parseInt(interaction.fields.getTextInputValue('taxa_participacao'));
@@ -611,6 +618,8 @@ class LootSplitHandler {
     }
   }
 
+  // ==================== ENVIAR PARA FINANCEIRO ====================
+
   static async handleEnviar(interaction, simulationId) {
     try {
       console.log(`[LootSplit] Sending simulation ${simulationId} to financeiro`);
@@ -721,6 +730,8 @@ class LootSplitHandler {
     }
   }
 
+  // ==================== APROVAÇÃO FINANCEIRA ====================
+
   static async handleAprovacaoFinanceira(interaction, simulationId, aprovar) {
     try {
       console.log(`[LootSplit] Processing financial approval for ${simulationId}: ${aprovar}`);
@@ -824,6 +835,7 @@ class LootSplitHandler {
         }));
       }
 
+      // ✅ Registrar taxa da guilda
       if (simulation.valorTaxa > 0) {
         console.log(`[LootSplit] Registrando taxa guilda: ${simulation.valorTaxa} para guild ${guildId}`);
 
@@ -884,6 +896,7 @@ class LootSplitHandler {
         });
       }
 
+      // ✅ Atualizar painel de saldo
       try {
         const BalancePanelHandler = require('./balancePanelHandler');
         const stats = await Database.getGuildDetailedStats(guildId);
@@ -923,28 +936,39 @@ class LootSplitHandler {
     }
   }
 
+  // ==================== ARQUIVAR EVENTO (CORRIGIDO) ====================
+
   static async handleArquivar(interaction, eventId, simulationId) {
     try {
       console.log(`[LootSplit] Archiving event ${eventId} with simulation ${simulationId}`);
 
       const simulation = global.simulations?.get(simulationId);
       if (!simulation) {
-        return interaction.reply({
-          content: '❌ Simulação não encontrada!',
-          ephemeral: true
-        });
+        // Verificar se já foi respondido
+        if (!interaction.replied && !interaction.deferred) {
+          return interaction.reply({
+            content: '❌ Simulação não encontrada! O evento já pode ter sido arquivado.',
+            ephemeral: true
+          });
+        }
+        return;
       }
 
+      // Determinar se é Raid Avalon ou Evento Normal
       const eventData = global.finishedEvents?.get(simulation.eventId) || global.activeEvents?.get(simulation.eventId);
+
+      // Verificar se é raid avalon pelo ID ou pelos dados do evento
       const isRaidAvalon = eventId?.includes('raid') ||
         simulation.eventId?.includes('raid') ||
         eventData?.tipo === 'raid_avalon';
 
+      // Definir taxa de XP baseado no tipo de evento
       const xpRate = isRaidAvalon ? this.XP_RATES.RAID_AVALON : this.XP_RATES.EVENTO_NORMAL;
       const eventoTipo = isRaidAvalon ? '🔥 RAID AVALON' : '⚔️ Evento Normal';
 
       console.log(`[LootSplit] Arquivando ${eventoTipo} - Taxa XP: ${xpRate} XP/min`);
 
+      // DISTRIBUIR XP AOS PARTICIPANTES
       let totalXpDistribuido = 0;
       const canalLogXp = interaction.guild.channels.cache.find(c => c.name === '📜╠log-xp');
 
@@ -953,10 +977,14 @@ class LootSplitHandler {
 
         for (const participante of simulation.distribuicao) {
           try {
+            // Calcular tempo em minutos
             const tempoMinutos = Math.floor((participante.tempo || 0) / 1000 / 60);
+
+            // Calcular XP (tempo em minutos × taxa)
             const xpGanho = tempoMinutos * xpRate;
 
             if (xpGanho > 0) {
+              // Adicionar XP usando o handler
               await XpHandler.addXp(
                 participante.userId,
                 xpGanho,
@@ -967,6 +995,7 @@ class LootSplitHandler {
 
               totalXpDistribuido += xpGanho;
 
+              // Notificar usuário por DM
               try {
                 const user = await interaction.client.users.fetch(participante.userId);
                 const embedXp = new EmbedBuilder()
@@ -995,6 +1024,7 @@ class LootSplitHandler {
         }
       }
 
+      // Salvar no histórico
       const guildId = simulation.guildId || interaction.guild?.id || eventData?.guildId;
 
       await Database.addEventHistory({
@@ -1011,12 +1041,14 @@ class LootSplitHandler {
         }
       });
 
+      // ✅ INTEGRAÇÃO AUTOMÁTICA: Verificar eventos XP ativos
       try {
         await XpEventHandler.verificarEventosAtivos(interaction.guild, simulation.eventoNome);
       } catch (e) {
         console.error('[LootSplit] Error auto-checking XP events:', e);
       }
 
+      // Criar embed de confirmação do arquivamento com info de XP
       const embedArquivamento = new EmbedBuilder()
         .setTitle('📁 EVENTO ARQUIVADO')
         .setDescription(
@@ -1031,14 +1063,26 @@ class LootSplitHandler {
         .setColor(isRaidAvalon ? 0x9B59B6 : 0x3498DB)
         .setTimestamp();
 
-      const canalEvento = interaction.guild.channels.cache.get(interaction.channel.id);
-      if (canalEvento) {
-        await interaction.update({
+      // ✅ CORREÇÃO: Usar reply em vez de update, e deletar canal após responder
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({
           content: '',
           embeds: [embedArquivamento],
-          components: []
+          ephemeral: false
         });
+      } else if (interaction.deferred && !interaction.replied) {
+        await interaction.followUp({
+          content: '',
+          embeds: [embedArquivamento],
+          ephemeral: false
+        });
+      } else {
+        await interaction.channel.send({ embeds: [embedArquivamento] });
+      }
 
+      // Deletar canal após 10 segundos
+      const canalEvento = interaction.channel;
+      if (canalEvento && canalEvento.deletable) {
         setTimeout(async () => {
           try {
             await canalEvento.delete('Evento arquivado');
@@ -1049,6 +1093,7 @@ class LootSplitHandler {
         }, 10000);
       }
 
+      // Log no canal de logs
       const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
       if (canalLogs) {
         await canalLogs.send({
@@ -1069,14 +1114,26 @@ class LootSplitHandler {
         });
       }
 
+      // Remover simulação da memória
+      global.simulations.delete(simulationId);
+
       console.log(`[LootSplit] Evento arquivado. Total XP distribuído: ${totalXpDistribuido}`);
 
     } catch (error) {
       console.error(`[LootSplit] Error archiving event:`, error);
-      await interaction.reply({
-        content: '❌ Erro ao arquivar evento.',
-        ephemeral: true
-      });
+
+      // ✅ CORREÇÃO: Verificar se já respondeu antes de tentar responder novamente
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({
+          content: '❌ Erro ao arquivar evento.',
+          ephemeral: true
+        });
+      } else if (interaction.deferred && !interaction.replied) {
+        await interaction.followUp({
+          content: '❌ Erro ao arquivar evento.',
+          ephemeral: true
+        });
+      }
     }
   }
 }

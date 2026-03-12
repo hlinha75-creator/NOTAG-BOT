@@ -98,7 +98,7 @@ global.xpDepositTemp = new Map();
 global.killboardProcessedEvents = new Map();
 global.marketSearches = new Map();
 global.depositTemp = new Map();
-global.lootTemp = new Map(); // ✅ NOVO: Temporários para atualização de participação
+global.lootTemp = new Map(); // ✅ Temporários para atualização de participação
 
 // Carregar dados persistidos
 try {
@@ -559,7 +559,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // LOOTSPLIT - ✅ NOVOS HANDLERS PARA ATUALIZAR PARTICIPAÇÃO
+      // LOOTSPLIT - ✅ ATUALIZAR PARTICIPAÇÃO (SISTEMA ORB-STYLE)
       if (customId.startsWith('loot_atualizar_part_')) {
         const simulationId = customId.replace('loot_atualizar_part_', '');
         await LootSplitHandler.handleAtualizarParticipacao(interaction, simulationId);
@@ -578,6 +578,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
+      // LOOTSPLIT - Simular Evento
       if (customId.startsWith('loot_simular_')) {
         const eventId = customId.replace('loot_simular_', '');
         const modal = LootSplitHandler.createSimulationModal(eventId);
@@ -585,18 +586,60 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
+      // LOOTSPLIT - Enviar para Financeiro
       if (customId.startsWith('loot_enviar_')) {
         const simulationId = customId.replace('loot_enviar_', '');
         await LootSplitHandler.handleEnviar(interaction, simulationId);
         return;
       }
 
+      // LOOTSPLIT - Recalcular
       if (customId.startsWith('loot_recalcular_')) {
         const simulationId = customId.replace('loot_recalcular_', '');
         await LootSplitHandler.handleRecalcular(interaction, simulationId);
         return;
       }
 
+      // LOOTSPLIT - ✅ ARQUIVAR EVENTO (CORRIGIDO)
+      if (customId.startsWith('loot_arquivar_')) {
+        const simulationId = customId.replace('loot_arquivar_', '');
+        const simulation = global.simulations?.get(simulationId);
+
+        if (!simulation) {
+          return interaction.reply({ 
+            content: '❌ Simulação não encontrada! O evento já pode ter sido arquivado.', 
+            ephemeral: true 
+          });
+        }
+
+        // Verificar permissões
+        const isCriador = interaction.user.id === simulation.criadorId;
+        const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
+
+        if (!isCriador && !isStaff) {
+          return interaction.reply({ 
+            content: '❌ Apenas o criador do evento ou Staff podem arquivar!', 
+            ephemeral: true 
+          });
+        }
+
+        // Chamar o handler com tratamento de erro
+        try {
+          await LootSplitHandler.handleArquivar(interaction, simulation.eventId, simulationId);
+        } catch (error) {
+          console.error('[Index] Erro ao arquivar:', error);
+          // Não tentar responder novamente se o handler já respondeu
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ 
+              content: '❌ Erro ao arquivar evento. Tente novamente.', 
+              ephemeral: true 
+            });
+          }
+        }
+        return;
+      }
+
+      // FINANCEIRO - Aprovar/Recusar
       if (customId.startsWith('fin_aprovar_')) {
         const simulationId = customId.replace('fin_aprovar_', '');
         await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, true);
@@ -606,17 +649,6 @@ client.on(Events.InteractionCreate, async interaction => {
       if (customId.startsWith('fin_recusar_')) {
         const simulationId = customId.replace('fin_recusar_', '');
         await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, false);
-        return;
-      }
-
-      if (customId.startsWith('loot_arquivar_')) {
-        const simulationId = customId.replace('loot_arquivar_', '');
-        const simulation = global.simulations?.get(simulationId);
-        if (simulation) {
-          await LootSplitHandler.handleArquivar(interaction, simulation.eventId, simulationId);
-        } else {
-          await interaction.reply({ content: '❌ Simulação não encontrada!', ephemeral: true });
-        }
         return;
       }
 
@@ -948,7 +980,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // SELECT MENUS
     if (interaction.isStringSelectMenu()) {
-      // ✅ NOVO: LOOTSPLIT - Seleção de usuários para atualizar participação
+      // ✅ LOOTSPLIT - Seleção de usuários para atualizar participação
       if (interaction.customId.startsWith('loot_select_users_')) {
         const simulationId = interaction.customId.replace('loot_select_users_', '');
         await LootSplitHandler.processUserSelection(interaction, simulationId);
@@ -1095,7 +1127,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
     // MODALS
     if (interaction.isModalSubmit()) {
-      // ✅ NOVO: LOOTSPLIT - Processar taxa de participação
+      // ✅ LOOTSPLIT - Processar taxa de participação
       if (interaction.customId.startsWith('modal_taxa_participacao_')) {
         const simulationId = interaction.customId.replace('modal_taxa_participacao_', '');
         await LootSplitHandler.processTaxaUpdate(interaction, simulationId);
