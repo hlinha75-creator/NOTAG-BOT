@@ -19,21 +19,17 @@ class LootSplitHandler {
     this.pendingApprovals = new Map();
   }
 
-  // ✅ CONSTANTES DE XP
   static XP_RATES = {
-    EVENTO_NORMAL: 1, // 1 XP por minuto
-    RAID_AVALON: 2    // 2 XP por minuto (dobro)
+    EVENTO_NORMAL: 1,
+    RAID_AVALON: 2
   };
 
-  // ✅ FUNÇÃO AUXILIAR: Formatar tempo em HH:MM:SS
   static formatTime(milliseconds) {
     if (!milliseconds || milliseconds <= 0) return '00:00:00';
-
     const totalSeconds = Math.floor(milliseconds / 1000);
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
-
     const pad = (num) => num.toString().padStart(2, '0');
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   }
@@ -113,10 +109,20 @@ class LootSplitHandler {
         });
       }
 
-      const config = global.guildConfig?.get(interaction.guild.id) || {};
+      const guildId = eventData.guildId || interaction.guild?.id;
+      if (!guildId) {
+        console.error(`[LootSplit] Erro: guildId não encontrado para evento ${eventId}`);
+        return interaction.reply({
+          content: '❌ Erro interno: ID da guilda não encontrado!',
+          ephemeral: true
+        });
+      }
+
+      console.log(`[LootSplit] Evento ${eventId} - GuildId: ${guildId}`);
+
+      const config = global.guildConfig?.get(guildId) || {};
       const taxaGuilda = config.taxaGuilda || 10;
 
-      // ✅ Calcular tempo total do evento
       let tempoTotalEvento = 0;
       if (eventData.inicioTimestamp && eventData.finalizadoEm) {
         tempoTotalEvento = eventData.finalizadoEm - eventData.inicioTimestamp;
@@ -168,7 +174,7 @@ class LootSplitHandler {
       const simulationData = {
         id: simulationId,
         eventId: eventId,
-        guildId: interaction.guild.id,
+        guildId: guildId,
         canalEventoId: interaction.channel.id,
         criadorId: interaction.user.id,
         valorTotal,
@@ -178,7 +184,7 @@ class LootSplitHandler {
         taxaGuilda,
         valorDistribuir,
         distribuicao,
-        tempoTotalEvento: tempoTotalEvento, // ✅ Armazenar tempo total
+        tempoTotalEvento: tempoTotalEvento,
         eventoNome: eventData.nome,
         status: 'simulado',
         timestamp: Date.now()
@@ -188,6 +194,7 @@ class LootSplitHandler {
       global.simulations.set(simulationId, simulationData);
 
       console.log(`[LootSplit] Simulation ${simulationId} created. Base: ${valorBase} (Total: ${valorTotal} + Sacos: ${valorSacos} - Reparo: ${valorReparo})`);
+      console.log(`[LootSplit] Taxa calculada: ${valorTaxa} (${taxaGuilda}%)`);
 
       const embed = this.createSimulationEmbed(simulationData, eventData);
 
@@ -222,9 +229,7 @@ class LootSplitHandler {
     }
   }
 
-  // ✅ ATUALIZADO: Mostrar tempo em HH:MM:SS e % de participação
   static createSimulationEmbed(simulation, eventData) {
-    // Calcular tempo total do evento
     const tempoTotalEvento = simulation.tempoTotalEvento || 0;
     const tempoTotalFormatado = this.formatTime(tempoTotalEvento);
 
@@ -242,17 +247,12 @@ class LootSplitHandler {
       .setColor(0xF1C40F)
       .setTimestamp();
 
-    // Lista de participantes com % de participação baseada no tempo total do evento
     const listaParticipantes = simulation.distribuicao.map(p => {
       const tempoFormatado = this.formatTime(p.tempo || 0);
-
-      // Calcular % de participação em relação ao tempo total do evento
       let percentParticipacao = 0;
       if (tempoTotalEvento > 0) {
         percentParticipacao = ((p.tempo || 0) / tempoTotalEvento) * 100;
       }
-
-      // Limitar a 100% (caso algum erro de timing)
       percentParticipacao = Math.min(percentParticipacao, 100);
 
       return `\`${p.nick}\`\n> 💰 **Valor:** \`${p.valor.toLocaleString()}\` | ⏱️ **Tempo:** \`${tempoFormatado}\` | 📊 **Participação:** \`${percentParticipacao.toFixed(1)}%\``;
@@ -264,7 +264,6 @@ class LootSplitHandler {
       inline: false
     });
 
-    // Adicionar legenda explicativa
     embed.setFooter({
       text: '💡 100% = Participou todo o evento | 50% = Participou metade do tempo | Formato: HH:MM:SS'
     });
@@ -282,6 +281,18 @@ class LootSplitHandler {
           content: '❌ Simulação não encontrada!',
           ephemeral: true
         });
+      }
+
+      if (!simulation.guildId) {
+        console.error(`[LootSplit] Simulação ${simulationId} sem guildId!`);
+        const eventData = global.activeEvents.get(simulation.eventId) || global.finishedEvents?.get(simulation.eventId);
+        if (eventData?.guildId) {
+          simulation.guildId = eventData.guildId;
+          console.log(`[LootSplit] GuildId recuperado do evento: ${simulation.guildId}`);
+        } else if (interaction.guild?.id) {
+          simulation.guildId = interaction.guild.id;
+          console.log(`[LootSplit] GuildId recuperado da interação: ${simulation.guildId}`);
+        }
       }
 
       const eventData = global.activeEvents.get(simulation.eventId) || global.finishedEvents?.get(simulation.eventId);
@@ -394,6 +405,31 @@ class LootSplitHandler {
 
       await interaction.deferUpdate();
 
+      let guildId = simulation.guildId;
+      if (!guildId) {
+        const eventData = global.finishedEvents?.get(simulation.eventId) || global.activeEvents?.get(simulation.eventId);
+        if (eventData?.guildId) {
+          guildId = eventData.guildId;
+          simulation.guildId = guildId;
+          console.log(`[LootSplit] GuildId recuperado do evento: ${guildId}`);
+        } else if (interaction.guild?.id) {
+          guildId = interaction.guild.id;
+          simulation.guildId = guildId;
+          console.log(`[LootSplit] GuildId recuperado da interação: ${guildId}`);
+        }
+      }
+
+      if (!guildId) {
+        console.error(`[LootSplit] CRÍTICO: Não foi possível determinar guildId para simulação ${simulationId}`);
+        await interaction.editReply({
+          content: '❌ Erro crítico: ID da guilda não encontrado. Contate o desenvolvedor.',
+          components: []
+        });
+        return;
+      }
+
+      console.log(`[LootSplit] Processando pagamento para guild: ${guildId}`);
+
       let sucessos = 0;
       let falhas = 0;
       const totalParticipantes = simulation.distribuicao.length;
@@ -449,17 +485,28 @@ class LootSplitHandler {
       }
 
       if (simulation.valorTaxa > 0) {
-        await Database.addTransaction({
-          type: 'credito',
-          userId: 'GUILD_BANK',
-          amount: simulation.valorTaxa,
-          reason: 'taxa_guilda',
-          guildId: interaction.guild.id,
-          eventId: simulation.eventId,
-          approvedBy: interaction.user.id,
-          approvedAt: Date.now()
-        });
-        console.log(`[LootSplit] Taxa guilda registrada: ${simulation.valorTaxa}`);
+        console.log(`[LootSplit] Registrando taxa guilda: ${simulation.valorTaxa} para guild ${guildId}`);
+
+        try {
+          const taxaRegistrada = await Database.addTransaction({
+            type: 'credito',
+            userId: 'GUILD_BANK',
+            amount: simulation.valorTaxa,
+            reason: 'taxa_guilda',
+            guildId: guildId,
+            eventId: simulation.eventId,
+            approvedBy: interaction.user.id,
+            approvedAt: Date.now()
+          });
+
+          if (taxaRegistrada) {
+            console.log(`[LootSplit] ✅ Taxa registrada com sucesso: ${simulation.valorTaxa} na guild ${guildId}`);
+          } else {
+            console.error(`[LootSplit] ❌ Falha ao registrar taxa (addTransaction retornou false)`);
+          }
+        } catch (taxaError) {
+          console.error(`[LootSplit] ❌ Erro ao registrar taxa:`, taxaError);
+        }
       }
 
       simulation.status = 'pago';
@@ -497,6 +544,14 @@ class LootSplitHandler {
         });
       }
 
+      try {
+        const BalancePanelHandler = require('./balancePanelHandler');
+        const stats = await Database.getGuildDetailedStats(guildId);
+        console.log(`[LootSplit] Painel atualizado - Saldo Geral: ${stats.saldoGeral}, Taxas: ${stats.arrecadacaoTaxas}`);
+      } catch (panelError) {
+        console.log(`[LootSplit] Não foi possível atualizar painel:`, panelError.message);
+      }
+
       const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
       if (canalLogs) {
         await canalLogs.send({
@@ -508,6 +563,8 @@ class LootSplitHandler {
                 `**Aprovado por:** <@${interaction.user.id}>\n` +
                 `**Valor Total:** \`${simulation.valorTotal.toLocaleString()}\`\n` +
                 `**Sacos:** \`${simulation.valorSacos.toLocaleString()}\`\n` +
+                `**Taxa Guilda:** \`${simulation.valorTaxa.toLocaleString()}\`\n` +
+                `**GuildId:** \`${guildId}\`\n` +
                 `**Participantes:** ${simulation.distribuicao.length}\n` +
                 `**Data:** ${new Date().toLocaleString()}`
               )
@@ -526,7 +583,6 @@ class LootSplitHandler {
     }
   }
 
-  // ✅ ATUALIZADO: Distribuir XP proporcional ao tempo no arquivamento
   static async handleArquivar(interaction, eventId, simulationId) {
     try {
       console.log(`[LootSplit] Archiving event ${eventId} with simulation ${simulationId}`);
@@ -539,21 +595,16 @@ class LootSplitHandler {
         });
       }
 
-      // Determinar se é Raid Avalon ou Evento Normal
       const eventData = global.finishedEvents?.get(simulation.eventId) || global.activeEvents?.get(simulation.eventId);
-
-      // Verificar se é raid avalon pelo ID ou pelos dados do evento
       const isRaidAvalon = eventId?.includes('raid') ||
         simulation.eventId?.includes('raid') ||
         eventData?.tipo === 'raid_avalon';
 
-      // Definir taxa de XP baseado no tipo de evento
       const xpRate = isRaidAvalon ? this.XP_RATES.RAID_AVALON : this.XP_RATES.EVENTO_NORMAL;
       const eventoTipo = isRaidAvalon ? '🔥 RAID AVALON' : '⚔️ Evento Normal';
 
       console.log(`[LootSplit] Arquivando ${eventoTipo} - Taxa XP: ${xpRate} XP/min`);
 
-      // DISTRIBUIR XP AOS PARTICIPANTES
       let totalXpDistribuido = 0;
       const canalLogXp = interaction.guild.channels.cache.find(c => c.name === '📜╠log-xp');
 
@@ -562,14 +613,10 @@ class LootSplitHandler {
 
         for (const participante of simulation.distribuicao) {
           try {
-            // Calcular tempo em minutos
             const tempoMinutos = Math.floor((participante.tempo || 0) / 1000 / 60);
-
-            // Calcular XP (tempo em minutos × taxa)
             const xpGanho = tempoMinutos * xpRate;
 
             if (xpGanho > 0) {
-              // Adicionar XP usando o handler
               await XpHandler.addXp(
                 participante.userId,
                 xpGanho,
@@ -580,7 +627,6 @@ class LootSplitHandler {
 
               totalXpDistribuido += xpGanho;
 
-              // Notificar usuário por DM
               try {
                 const user = await interaction.client.users.fetch(participante.userId);
                 const embedXp = new EmbedBuilder()
@@ -609,11 +655,12 @@ class LootSplitHandler {
         }
       }
 
-      // Salvar no histórico
+      const guildId = simulation.guildId || interaction.guild?.id || eventData?.guildId;
+
       await Database.addEventHistory({
         eventId: eventId || simulation.eventId,
         simulationId: simulationId,
-        guildId: interaction.guild.id,
+        guildId: guildId,
         arquivadoPor: interaction.user.id,
         timestamp: Date.now(),
         dados: {
@@ -624,14 +671,12 @@ class LootSplitHandler {
         }
       });
 
-      // ✅ INTEGRAÇÃO AUTOMÁTICA: Verificar eventos XP ativos
       try {
         await XpEventHandler.verificarEventosAtivos(interaction.guild, simulation.eventoNome);
       } catch (e) {
         console.error('[LootSplit] Error auto-checking XP events:', e);
       }
 
-      // Criar embed de confirmação do arquivamento com info de XP
       const embedArquivamento = new EmbedBuilder()
         .setTitle('📁 EVENTO ARQUIVADO')
         .setDescription(
@@ -654,7 +699,6 @@ class LootSplitHandler {
           components: []
         });
 
-        // Deletar canal após 10 segundos
         setTimeout(async () => {
           try {
             await canalEvento.delete('Evento arquivado');
@@ -665,7 +709,6 @@ class LootSplitHandler {
         }, 10000);
       }
 
-      // Log no canal de logs
       const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
       if (canalLogs) {
         await canalLogs.send({

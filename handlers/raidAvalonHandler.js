@@ -11,40 +11,41 @@ const {
 
 /**
  * Handler para Raid Avalon - Sistema de Classes e Armas
+ * Atualizado: Scout agora usa Para-tempu (com U) para imagens diferentes
  */
 class RaidAvalonHandler {
   constructor() {
-    // Configuração das classes e armas disponíveis
+    // ✅ CONFIGURAÇÃO ATUALIZADA DAS CLASSES E ARMAS
     this.classes = {
       tank: {
         nome: 'Tank',
         emoji: '🛡️',
         cor: 0x3498DB,
-        armas: ['Martelo', 'Incubus']
-      },
-      dps: {
-        nome: 'DPS',
-        emoji: '⚔️',
-        cor: 0xE74C3C,
-        armas: ['Fura-bruma', 'Fulgurante', 'Aguia', 'Quebra-reinos']
+        armas: ['Martelo', 'Incubos', 'Para-tempo'] // Tank mantém Para-tempo
       },
       healer: {
         nome: 'Healer',
         emoji: '💚',
         cor: 0x2ECC71,
-        armas: ['Queda-santa', 'Crosta']
+        armas: ['Cajado-Sagrado', 'Raiz-ferrea', 'Crosta']
       },
       suporte: {
         nome: 'Suporte',
         emoji: '✨',
         cor: 0x9B59B6,
-        armas: ['Chama-sombra', 'Para-tempo']
+        armas: ['Chama-sombra']
       },
       scout: {
         nome: 'Scout',
         emoji: '👁️',
         cor: 0xF39C12,
-        armas: ['Para-tempo']
+        armas: ['Para-tempu'] // ✅ ALTERADO: Para-tempu com U para imagens diferentes
+      },
+      dps: {
+        nome: 'DPS',
+        emoji: '⚔️',
+        cor: 0xE74C3C,
+        armas: ['Fura-bruma', 'Fulgurante', 'Quebra-reinos', 'Aguia', 'Foice-de-cristal', 'Ártico', 'Repetidor']
       }
     };
   }
@@ -301,7 +302,7 @@ class RaidAvalonHandler {
 
       // Completar dados da raid
       raidData.id = eventId;
-      raidData.guildId = guild.id;
+      raidData.guildId = guild.id; // ✅ CORREÇÃO: Adicionado guildId
       raidData.criadorId = interaction.user.id;
       raidData.criadorTag = interaction.user.tag;
       raidData.canalVozId = canalVoz.id;
@@ -422,7 +423,7 @@ class RaidAvalonHandler {
     const embed = new EmbedBuilder()
       .setTitle(`${statusEmojis[raidData.status] || '⏳'} 🏰 RAID AVALON ┃ ${raidData.nome}`)
       .setDescription(
-        `\\> ${raidData.descricao}\n\n` +
+        `\> ${raidData.descricao}\n\n` +
         `**👤 Criador:** <@${raidData.criadorId}>\n` +
         `**🕐 Horário:** \`${raidData.horario}\`\n` +
         `**📊 Status:** ${raidData.status === 'aguardando' ? 'Aguardando' : 'Em Andamento'}\n` +
@@ -459,34 +460,34 @@ class RaidAvalonHandler {
           new StringSelectMenuOptionBuilder()
             .setLabel('Tank')
             .setValue('tank')
-            .setDescription('Defesa e agro')
+            .setDescription('Defesa e agro: Martelo, Incubos, Para-tempo')
             .setEmoji('🛡️'),
           new StringSelectMenuOptionBuilder()
             .setLabel('DPS')
             .setValue('dps')
-            .setDescription('Dano em área/single target')
+            .setDescription('Dano: Fura-bruma, Fulgurante, Quebra-reinos, Águia, Foice-de-cristal, Ártico, Repetidor')
             .setEmoji('⚔️'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Healer')
             .setValue('healer')
-            .setDescription('Cura e suporte')
+            .setDescription('Cura: Cajado-Sagrado, Raiz-ferrea, Crosta')
             .setEmoji('💚'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Suporte')
             .setValue('suporte')
-            .setDescription('Buffs e controle')
+            .setDescription('Buffs: Chama-sombra')
             .setEmoji('✨'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Scout')
             .setValue('scout')
-            .setDescription('Reconhecimento')
+            .setDescription('Reconhecimento: Para-tempu') // ✅ Atualizado descrição
             .setEmoji('👁️')
         ]);
 
       rows.push(new ActionRowBuilder().addComponents(selectMenu));
     }
 
-    // Botões de controle (apenas criador - CORREÇÃO APLICADA)
+    // Botões de controle (apenas criador/staff)
     const controleRow = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
         .setCustomId(`raid_iniciar_${raidData.id}`)
@@ -678,34 +679,39 @@ class RaidAvalonHandler {
   }
 
   /**
-   * Retorna armas disponíveis por classe
+   * Retorna armas disponíveis por classe ✅ ATUALIZADO
    */
   static getArmasPorClasse(classKey) {
     const armas = {
-      tank: ['Martelo', 'Incubus'],
-      dps: ['Fura-bruma', 'Fulgurante', 'Aguia', 'Quebra-reinos'],
-      healer: ['Queda-santa', 'Crosta'],
-      suporte: ['Chama-sombra', 'Para-tempo'],
-      scout: ['Para-tempo']
+      tank: ['Martelo', 'Incubos', 'Para-tempo'], // Tank mantém Para-tempo
+      dps: ['Fura-bruma', 'Fulgurante', 'Quebra-reinos', 'Aguia', 'Foice-de-cristal', 'Ártico', 'Repetidor'],
+      healer: ['Cajado-Sagrado', 'Raiz-ferrea', 'Crosta'],
+      suporte: ['Chama-sombra'],
+      scout: ['Para-tempu'] // ✅ ALTERADO: Para-tempu com U
     };
     return armas[classKey] || [];
   }
 
   /**
-   * Retorna nome da arma pelo key
+   * Retorna nome da arma pelo key ✅ ATUALIZADO
    */
   static getArmaNomeByKey(key) {
     const map = {
       'martelo': 'Martelo',
-      'incubus': 'Incubus',
+      'incubos': 'Incubos',
+      'para-tempo': 'Para-tempo', // Tank/Suporte
+      'para-tempu': 'Para-tempu', // ✅ ADICIONADO: Scout com U
       'fura-bruma': 'Fura-bruma',
       'fulgurante': 'Fulgurante',
       'aguia': 'Águia',
       'quebra-reinos': 'Quebra-reinos',
-      'queda-santa': 'Queda-santa',
+      'foice-de-cristal': 'Foice-de-cristal',
+      'artico': 'Ártico',
+      'repetidor': 'Repetidor',
+      'cajado-sagrado': 'Cajado-Sagrado',
+      'raiz-ferrea': 'Raiz-ferrea',
       'crosta': 'Crosta',
-      'chama-sombra': 'Chama-sombra',
-      'para-tempo': 'Para-tempo'
+      'chama-sombra': 'Chama-sombra'
     };
     return map[key] || key;
   }
@@ -746,7 +752,7 @@ class RaidAvalonHandler {
   }
 
   /**
-   * Handlers para botões de controle - CORREÇÃO: Apenas criador pode usar
+   * Handlers para botões de controle
    */
   static async handleIniciar(interaction, raidId) {
     try {
@@ -755,10 +761,12 @@ class RaidAvalonHandler {
         return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
-      // ✅ CORREÇÃO: Apenas o criador pode iniciar (removido isStaff)
-      if (interaction.user.id !== raidData.criadorId) {
+      const isCriador = interaction.user.id === raidData.criadorId;
+      const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
+
+      if (!isCriador && !isStaff) {
         return interaction.reply({
-          content: '❌ Apenas o criador da raid pode iniciar!',
+          content: '❌ Apenas o criador ou staff pode iniciar!',
           ephemeral: true
         });
       }
@@ -829,10 +837,12 @@ class RaidAvalonHandler {
         return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
-      // ✅ CORREÇÃO: Apenas o criador pode finalizar (removido isStaff)
-      if (interaction.user.id !== raidData.criadorId) {
+      const isCriador = interaction.user.id === raidData.criadorId;
+      const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
+
+      if (!isCriador && !isStaff) {
         return interaction.reply({
-          content: '❌ Apenas o criador da raid pode finalizar!',
+          content: '❌ Apenas o criador ou staff pode finalizar!',
           ephemeral: true
         });
       }
@@ -903,7 +913,7 @@ class RaidAvalonHandler {
       // ✅ CORREÇÃO: Garantir guildId ao salvar em finishedEvents
       global.finishedEvents.set(raidId, {
         ...raidData,
-        guildId: raidData.guildId || interaction.guild.id,
+        guildId: raidData.guildId || interaction.guild.id, // Garantir guildId
         participantes: participantesMap,
         finalizadoEm: Date.now()
       });
@@ -929,10 +939,12 @@ class RaidAvalonHandler {
         return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
-      // ✅ CORREÇÃO: Apenas o criador pode cancelar (removido isStaff)
-      if (interaction.user.id !== raidData.criadorId) {
+      const isCriador = interaction.user.id === raidData.criadorId;
+      const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
+
+      if (!isCriador && !isStaff) {
         return interaction.reply({
-          content: '❌ Apenas o criador da raid pode cancelar!',
+          content: '❌ Apenas o criador ou staff pode cancelar!',
           ephemeral: true
         });
       }
