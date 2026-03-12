@@ -6,10 +6,16 @@ const { promisify } = require('util');
 /**
  * Database Manager - Versão SQLite3 para Replit
  * API idêntica à versão better-sqlite3 para compatibilidade
+ * 
+ * ✅ BACKUP AUTOMÁTICO DE SALDOS IMPLEMENTADO:
+ * - A cada 1 hora exporta apenas dados financeiros críticos
+ * - Mantém últimos 24 backups (24 horas de histórico)
+ * - Salvo em data/backups/saldos/backup_YYYY-MM-DD_HH-mm-ss.json
  */
 class DatabaseManager {
   constructor() {
     this.dbPath = path.join(__dirname, '..', 'data', 'database.db');
+    this.backupDir = path.join(__dirname, '..', 'data', 'backups', 'saldos');
     this.db = null;
     this.initialized = false;
     this.statements = {};
@@ -20,6 +26,12 @@ class DatabaseManager {
       const dir = path.dirname(this.dbPath);
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
+      }
+
+      // ✅ Criar diretório de backup de saldos se não existir
+      if (!fs.existsSync(this.backupDir)) {
+        fs.mkdirSync(this.backupDir, { recursive: true });
+        console.log('[Database] Diretório de backup de saldos criado:', this.backupDir);
       }
 
       this.db = new sqlite3.Database(this.dbPath);
@@ -35,11 +47,185 @@ class DatabaseManager {
       this.initialized = true;
       console.log('[Database] SQLite3 initialized successfully (Replit Mode)');
 
+      // Cleanup a cada 24h
       setInterval(() => this.cleanup(), 24 * 60 * 60 * 1000);
+
+      // ✅ BACKUP AUTOMÁTICO DE SALDOS a cada 1 hora
+      console.log('[Database] Iniciando sistema de backup de saldos (1h intervalo)');
+      setInterval(() => this.backupSaldos(), 60 * 60 * 1000); // 1 hora = 3600000ms
+
+      // Primeiro backup imediato após 30 segundos (garante que tudo está carregado)
+      setTimeout(() => this.backupSaldos(), 30000);
 
     } catch (error) {
       console.error('[Database] Failed to initialize:', error);
       throw error;
+    }
+  }
+
+  /**
+   * ✅ NOVO MÉTODO: Backup exclusivo dos saldos
+   * Exporta apenas dados financeiros críticos para JSON separado
+   * Mantém últimos 24 arquivos (24 horas de histórico)
+   */
+  async backupSaldos() {
+    try {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const backupFile = path.join(this.backupDir, `backup_${timestamp}.json`);
+
+      // Buscar apenas dados financeiros críticos
+      const rows = await this.db.allAsync(`
+        SELECT user_id, saldo, total_recebido, total_sacado, 
+               emprestimos_pendentes, total_emprestimos, updated_at
+        FROM users 
+        WHERE saldo > 0 OR total_recebido > 0 OR total_sacado > 0 OR emprestimos_pendentes > 0
+        ORDER BY updated_at DESC
+      `);
+
+      // Estatísticas para log
+      const stats = {
+        totalUsuarios: rows.length,
+        saldoTotal: rows.reduce((sum, r) => sum + (r.saldo || 0), 0),
+        totalRecebido: rows.reduce((sum, r) => sum + (r.total_recebido || 0), 0),
+        totalSacado: rows.reduce((sum, r) => sum + (r.total_sacado || 0), 0),
+        totalEmprestimos: rows.reduce((sum, r) => sum + (r.total_emprestimos || 0), 0),
+        pendencias: rows.reduce((sum, r) => sum + (r.emprestimos_pendentes || 0), 0)
+      };
+
+      const backupData = {
+        metadata: {
+          timestamp: new Date().toISOString(),
+          versao: '1.0',
+          tipo: 'backup_saldos_criticos',
+          estatisticas: stats
+        },
+        saldos: rows
+      };
+
+      // Escrita atômica (arquivo temporário + rename)
+      const tempFile = backupFile + '.tmp';
+      fs.writeFileSync(tempFile, JSON.stringify(backupData, null, 2), 'utf8');
+      fs.renameSync(tempFile, backupFile);
+
+      console.log(`[Database] 💰 Backup de saldos criado: ${path.basename(backupFile)} | ${rows.length} usuários | Saldo total: ${stats.saldoTotal.toLocaleString()} silver`);
+
+      // Limpar backups antigos (manter apenas últimos 24)
+      this.cleanupOldBackups();
+
+    } catch (error) {
+      console.error('[Database] ❌ Erro ao criar backup de saldos:', error);
+    }
+  }
+
+  /**
+   * ✅ NOVO MÉTODO: Limpar backups antigos de saldos
+   * Mantém apenas os últimos 24 arquivos (24 horas)
+   */
+  cleanupOldBackups() {
+    try {
+      const files = fs.readdirSync(this.backupDir)
+        .filter(f => f.startsWith('backup_') && f.endsWith('.json'))
+        .map(f => ({
+          name: f,
+          path: path.join(this.backupDir, f),
+          time: fs.statSync(path.join(this.backupDir, f)).mtime.getTime()
+        }))
+        .sort((a, b) => b.time - a.time); // Mais recente primeiro
+
+      // Remover arquivos além do 24º
+      if (files.length > 24) {
+        const toDelete = files.slice(24);
+        toDelete.forEach(file => {
+          try {
+            fs.unlinkSync(file.path);
+            console.log(`[Database] 🗑️ Backup antigo removido: ${file.name}`);
+          } catch (e) {
+            console.error(`[Database] Erro ao remover ${file.name}:`, e.message);
+          }
+        });
+      }
+    } catch (error) {
+      console.error('[Database] Erro ao limpar backups antigos:', error);
+    }
+  }
+
+  /**
+   * ✅ NOVO MÉTODO: Restaurar saldos de backup (emergência)
+   * Útil caso o banco principal corrompa e precise recuperar apenas saldos
+   */
+  async restoreSaldosFromBackup(backupFileName) {
+    try {
+      const backupPath = path.join(this.backupDir, backupFileName);
+
+      if (!fs.existsSync(backupPath)) {
+        throw new Error(`Arquivo de backup não encontrado: ${backupFileName}`);
+      }
+
+      const data = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+
+      if (!data.saldos || !Array.isArray(data.saldos)) {
+        throw new Error('Formato de backup inválido');
+      }
+
+      console.log(`[Database] 🔄 Iniciando restauração de ${data.saldos.length} saldos...`);
+
+      let restored = 0;
+      for (const userData of data.saldos) {
+        await this.db.runAsync(`
+          INSERT INTO users (user_id, saldo, total_recebido, total_sacado, 
+                           emprestimos_pendentes, total_emprestimos, updated_at, ultimo_login)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(user_id) DO UPDATE SET
+            saldo = excluded.saldo,
+            total_recebido = excluded.total_recebido,
+            total_sacado = excluded.total_sacado,
+            emprestimos_pendentes = excluded.emprestimos_pendentes,
+            total_emprestimos = excluded.total_emprestimos,
+            updated_at = excluded.updated_at
+        `, [
+          userData.user_id,
+          userData.saldo || 0,
+          userData.total_recebido || 0,
+          userData.total_sacado || 0,
+          userData.emprestimos_pendentes || 0,
+          userData.total_emprestimos || 0,
+          userData.updated_at || Date.now(),
+          Date.now()
+        ]);
+        restored++;
+      }
+
+      console.log(`[Database] ✅ Restauração concluída: ${restored} saldos restaurados`);
+      return { success: true, count: restored, totalSaldo: data.metadata?.estatisticas?.saldoTotal || 0 };
+
+    } catch (error) {
+      console.error('[Database] ❌ Erro na restauração:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * ✅ NOVO MÉTODO: Listar backups disponíveis
+   */
+  listSaldosBackups() {
+    try {
+      if (!fs.existsSync(this.backupDir)) return [];
+
+      return fs.readdirSync(this.backupDir)
+        .filter(f => f.startsWith('backup_') && f.endsWith('.json'))
+        .map(f => {
+          const stats = fs.statSync(path.join(this.backupDir, f));
+          return {
+            filename: f,
+            created: stats.mtime,
+            size: stats.size,
+            sizeFormatted: (stats.size / 1024).toFixed(2) + ' KB'
+          };
+        })
+        .sort((a, b) => b.created - a.created);
+    } catch (error) {
+      console.error('[Database] Erro ao listar backups:', error);
+      return [];
     }
   }
 
@@ -695,8 +881,8 @@ class DatabaseManager {
       INSERT INTO daily_checkins (user_id, guild_id, date, reward_xp, reward_saldo, streak)
       VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id, date) DO UPDATE SET
-      reward_xp = excluded.reward_xp,
-      reward_saldo = excluded.reward_saldo
+        reward_xp = excluded.reward_xp,
+        reward_saldo = excluded.reward_saldo
     `, [userId, guildId, today, rewards.xp, rewards.saldo, rewards.streak]);
 
     await this.updateUser(userId, {
@@ -821,8 +1007,15 @@ class DatabaseManager {
 
   close() {
     if (this.db) {
-      this.db.close();
-      console.log('[Database] Connection closed');
+      // Criar backup final dos saldos antes de fechar
+      console.log('[Database] Criando backup final dos saldos antes de encerrar...');
+      this.backupSaldos().then(() => {
+        this.db.close();
+        console.log('[Database] Connection closed');
+      }).catch(err => {
+        console.error('[Database] Erro no backup final:', err);
+        this.db.close();
+      });
     }
   }
 }

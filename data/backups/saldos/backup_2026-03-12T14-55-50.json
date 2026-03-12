@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-12T14:55:50.688Z",
+    "versao": "1.0",
+    "tipo": "backup_saldos_criticos",
+    "estatisticas": {
+      "totalUsuarios": 5,
+      "saldoTotal": 40053438,
+      "totalRecebido": 40053442,
+      "totalSacado": 4,
+      "totalEmprestimos": 0,
+      "pendencias": 0
+    }
+  },
+  "saldos": [
+    {
+      "user_id": "715328489938616332",
+      "saldo": 20026423,
+      "total_recebido": 20026426,
+      "total_sacado": 3,
+      "emprestimos_pendentes": 0,
+      "total_emprestimos": 0,
+      "updated_at": 1773326209413
+    },
+    {
+      "user_id": "244264130234679296",
+      "saldo": 20025855,
+      "total_recebido": 20025855,
+      "total_sacado": 0,
+      "emprestimos_pendentes": 0,
+      "total_emprestimos": 0,
+      "updated_at": 1773326209413
+    },
+    {
+      "user_id": "484445694485331982",
+      "saldo": 20,
+      "total_recebido": 21,
+      "total_sacado": 1,
+      "emprestimos_pendentes": 0,
+      "total_emprestimos": 0,
+      "updated_at": 1773324918482
+    },
+    {
+      "user_id": "427599422839455745",
+      "saldo": 570,
+      "total_recebido": 570,
+      "total_sacado": 0,
+      "emprestimos_pendentes": 0,
+      "total_emprestimos": 0,
+      "updated_at": 1773323020138
+    },
+    {
+      "user_id": "395900373191360516",
+      "saldo": 570,
+      "total_recebido": 570,
+      "total_sacado": 0,
+      "emprestimos_pendentes": 0,
+      "total_emprestimos": 0,
+      "updated_at": 1773323020138
+    }
+  ]
+}
