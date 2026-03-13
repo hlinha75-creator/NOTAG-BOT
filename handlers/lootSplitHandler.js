@@ -247,6 +247,7 @@ class LootSplitHandler {
 
   // ==================== EMBEDS ====================
 
+  // ✅ CORREÇÃO: Dividir participantes em múltiplos campos para respeitar limite de 1024 caracteres
   static createSimulationEmbed(simulation, eventData) {
     const tempoTotalEvento = simulation.tempoTotalEvento || 0;
     const tempoTotalFormatado = this.formatTime(tempoTotalEvento);
@@ -265,7 +266,8 @@ class LootSplitHandler {
       .setColor(0xF1C40F)
       .setTimestamp();
 
-    const listaParticipantes = simulation.distribuicao.map(p => {
+    // Processar participantes e dividir em campos menores (máx 1024 caracteres por campo)
+    const participantes = simulation.distribuicao.map(p => {
       const tempoFormatado = this.formatTime(p.tempo || 0);
       let percentParticipacao = 0;
       if (tempoTotalEvento > 0) {
@@ -274,13 +276,47 @@ class LootSplitHandler {
       percentParticipacao = Math.min(percentParticipacao, 100);
 
       return `\`${p.nick}\`\n> 💰 **Valor:** \`${p.valor.toLocaleString()}\` | ⏱️ **Tempo:** \`${tempoFormatado}\` | 📊 **Participação:** \`${percentParticipacao.toFixed(1)}%\``;
-    }).join('\n\n');
-
-    embed.addFields({
-      name: `👥 Participantes (${simulation.distribuicao.length}) - Participação baseada no tempo total`,
-      value: listaParticipantes || 'Nenhum participante',
-      inline: false
     });
+
+    // Dividir em grupos respeitando o limite de 1024 caracteres por campo
+    let fieldIndex = 1;
+    let currentContent = '';
+
+    for (let i = 0; i < participantes.length; i++) {
+      const participante = participantes[i];
+      const separator = currentContent ? '\n\n' : '';
+      const testContent = currentContent + separator + participante;
+
+      // Se adicionar este participante ultrapassar 1024 caracteres, criar novo campo
+      if (testContent.length > 1024) {
+        embed.addFields({
+          name: fieldIndex === 1 ? `👥 Participantes (${simulation.distribuicao.length})` : `👥 Participantes (continuação ${fieldIndex})`,
+          value: currentContent || 'Nenhum participante',
+          inline: false
+        });
+
+        // Iniciar novo campo com o participante atual
+        currentContent = participante;
+        fieldIndex++;
+      } else {
+        currentContent = testContent;
+      }
+    }
+
+    // Adicionar o último campo se houver conteúdo restante
+    if (currentContent) {
+      embed.addFields({
+        name: fieldIndex === 1 ? `👥 Participantes (${simulation.distribuicao.length})` : `👥 Participantes (continuação ${fieldIndex})`,
+        value: currentContent,
+        inline: false
+      });
+    } else if (participantes.length === 0) {
+      embed.addFields({
+        name: `👥 Participantes (0)`,
+        value: 'Nenhum participante',
+        inline: false
+      });
+    }
 
     embed.setFooter({
       text: '💡 100% = Participou todo o evento | 50% = Participou metade do tempo | Formato: HH:MM:SS'
@@ -816,9 +852,9 @@ class LootSplitHandler {
                   .setTitle('💰 PAGAMENTO RECEBIDO')
                   .setDescription(
                     `🎉 **Parabéns!** Você recebeu um pagamento!\n\n` +
-                    `\> **Valor:** \`${participante.valor.toLocaleString()}\`\n` +
-                    `\> **Evento:** ${simulation.eventId}\n` +
-                    `\> **Data:** ${new Date().toLocaleString('pt-BR')}\n\n` +
+                    `\\> **Valor:** \`${participante.valor.toLocaleString()}\`\n` +
+                    `\\> **Evento:** ${simulation.eventId}\n` +
+                    `\\> **Data:** ${new Date().toLocaleString('pt-BR')}\n\n` +
                     `💎 **Seu Novo Saldo:** \`${novoSaldo.toLocaleString()}\``
                   )
                   .setColor(0x2ECC71)
