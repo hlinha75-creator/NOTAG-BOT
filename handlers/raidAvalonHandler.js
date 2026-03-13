@@ -11,41 +11,40 @@ const {
 
 /**
  * Handler para Raid Avalon - Sistema de Classes e Armas
- * Atualizado: Scout agora usa Para-tempu (com U) para imagens diferentes
  */
 class RaidAvalonHandler {
   constructor() {
-    // ✅ CONFIGURAÇÃO ATUALIZADA DAS CLASSES E ARMAS
+    // Configuração das classes e armas disponíveis
     this.classes = {
       tank: {
         nome: 'Tank',
         emoji: '🛡️',
         cor: 0x3498DB,
-        armas: ['Martelo', 'Incubos', 'Para-tempo'] // Tank mantém Para-tempo
-      },
-      healer: {
-        nome: 'Healer',
-        emoji: '💚',
-        cor: 0x2ECC71,
-        armas: ['Cajado-Sagrado', 'Raiz-ferrea', 'Crosta']
-      },
-      suporte: {
-        nome: 'Suporte',
-        emoji: '✨',
-        cor: 0x9B59B6,
-        armas: ['Chama-sombra']
-      },
-      scout: {
-        nome: 'Scout',
-        emoji: '👁️',
-        cor: 0xF39C12,
-        armas: ['Para-tempu'] // ✅ ALTERADO: Para-tempu com U para imagens diferentes
+        armas: ['Martelo', 'Incubus']
       },
       dps: {
         nome: 'DPS',
         emoji: '⚔️',
         cor: 0xE74C3C,
-        armas: ['Fura-bruma', 'Fulgurante', 'Quebra-reinos', 'Aguia', 'Foice-de-cristal', 'Ártico', 'Repetidor']
+        armas: ['Fura-bruma', 'Fulgurante', 'Aguia', 'Quebra-reinos']
+      },
+      healer: {
+        nome: 'Healer',
+        emoji: '💚',
+        cor: 0x2ECC71,
+        armas: ['Queda-santa', 'Crosta']
+      },
+      suporte: {
+        nome: 'Suporte',
+        emoji: '✨',
+        cor: 0x9B59B6,
+        armas: ['Chama-sombra', 'Para-tempo']
+      },
+      scout: {
+        nome: 'Scout',
+        emoji: '👁️',
+        cor: 0xF39C12,
+        armas: ['Para-tempo']
       }
     };
   }
@@ -423,7 +422,7 @@ class RaidAvalonHandler {
     const embed = new EmbedBuilder()
       .setTitle(`${statusEmojis[raidData.status] || '⏳'} 🏰 RAID AVALON ┃ ${raidData.nome}`)
       .setDescription(
-        `\> ${raidData.descricao}\n\n` +
+        `\\> ${raidData.descricao}\n\n` +
         `**👤 Criador:** <@${raidData.criadorId}>\n` +
         `**🕐 Horário:** \`${raidData.horario}\`\n` +
         `**📊 Status:** ${raidData.status === 'aguardando' ? 'Aguardando' : 'Em Andamento'}\n` +
@@ -460,27 +459,27 @@ class RaidAvalonHandler {
           new StringSelectMenuOptionBuilder()
             .setLabel('Tank')
             .setValue('tank')
-            .setDescription('Defesa e agro: Martelo, Incubos, Para-tempo')
+            .setDescription('Defesa e agro')
             .setEmoji('🛡️'),
           new StringSelectMenuOptionBuilder()
             .setLabel('DPS')
             .setValue('dps')
-            .setDescription('Dano: Fura-bruma, Fulgurante, Quebra-reinos, Águia, Foice-de-cristal, Ártico, Repetidor')
+            .setDescription('Dano em área/single target')
             .setEmoji('⚔️'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Healer')
             .setValue('healer')
-            .setDescription('Cura: Cajado-Sagrado, Raiz-ferrea, Crosta')
+            .setDescription('Cura e suporte')
             .setEmoji('💚'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Suporte')
             .setValue('suporte')
-            .setDescription('Buffs: Chama-sombra')
+            .setDescription('Buffs e controle')
             .setEmoji('✨'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Scout')
             .setValue('scout')
-            .setDescription('Reconhecimento: Para-tempu') // ✅ Atualizado descrição
+            .setDescription('Reconhecimento')
             .setEmoji('👁️')
         ]);
 
@@ -547,16 +546,26 @@ class RaidAvalonHandler {
         });
       }
 
-      // Verificar se já está participando
+      // ✅ CORREÇÃO: Verificar se já está participando em ALGUMA classe e remover antes
+      let classeAnterior = null;
+      let participacaoAnterior = null;
+
       for (const [key, data] of Object.entries(raidData.classes || {})) {
-        const jaParticipa = data.participantes?.find(p => p.userId === interaction.user.id);
-        if (jaParticipa) {
-          return interaction.reply({
-            content: `❌ Você já está participando como ${key.toUpperCase()} com ${jaParticipa.arma}!`,
-            ephemeral: true
-          });
+        const index = data.participantes?.findIndex(p => p.userId === interaction.user.id);
+        if (index !== -1 && index !== undefined) {
+          // Encontrou em outra classe - remover da classe anterior
+          classeAnterior = key;
+          participacaoAnterior = data.participantes[index];
+          data.participantes.splice(index, 1);
+          console.log(`[RaidAvalon] Usuário ${interaction.user.id} removido da classe ${key} para trocar para ${classKey}`);
+          break; // Só pode estar em uma classe, então para aqui
         }
       }
+
+      // Se estava em outra classe, informar na mensagem
+      const mensagemTroca = classeAnterior 
+        ? `🔄 Você estava como ${classeAnterior.toUpperCase()} e agora vai trocar para ${classKey.toUpperCase()}.\n\n` 
+        : '';
 
       const armas = this.getArmasPorClasse(classKey);
 
@@ -576,7 +585,7 @@ class RaidAvalonHandler {
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
       await interaction.reply({
-        content: `🎮 **Escolha sua arma para ${classKey.toUpperCase()}:**`,
+        content: `${mensagemTroca}🎮 **Escolha sua arma para ${classKey.toUpperCase()}:**`,
         components: [row],
         ephemeral: true
       });
@@ -606,22 +615,55 @@ class RaidAvalonHandler {
       const armaNome = this.getArmaNomeByKey(weaponKey);
       const member = interaction.member;
 
-      // Adicionar participante
+      // ✅ CORREÇÃO: Remover de qualquer outra classe antes de adicionar na nova
+      for (const [key, data] of Object.entries(raidData.classes || {})) {
+        if (key !== classKey) { // Não verifica a classe atual (onde vai entrar)
+          const index = data.participantes?.findIndex(p => p.userId === member.id);
+          if (index !== -1 && index !== undefined) {
+            data.participantes.splice(index, 1);
+            console.log(`[RaidAvalon] Removido ${member.id} da classe ${key} ao entrar em ${classKey}`);
+          }
+        }
+      }
+
+      // Adicionar participante na nova classe
       if (!raidData.classes[classKey].participantes) {
         raidData.classes[classKey].participantes = [];
       }
 
-      raidData.classes[classKey].participantes.push({
-        userId: member.id,
-        nick: member.nickname || member.user.username,
-        arma: armaNome,
-        classe: classKey,
-        joinedAt: Date.now()
-      });
+      // Verificar se já existe na classe atual (evita duplicados)
+      const jaExiste = raidData.classes[classKey].participantes.findIndex(p => p.userId === member.id);
+      if (jaExiste !== -1) {
+        // Atualizar dados se já existir
+        raidData.classes[classKey].participantes[jaExiste] = {
+          userId: member.id,
+          nick: member.nickname || member.user.username,
+          arma: armaNome,
+          classe: classKey,
+          joinedAt: Date.now()
+        };
+      } else {
+        // Adicionar novo
+        raidData.classes[classKey].participantes.push({
+          userId: member.id,
+          nick: member.nickname || member.user.username,
+          arma: armaNome,
+          classe: classKey,
+          joinedAt: Date.now()
+        });
+      }
 
       // Atualizar também no activeEvents para compatibilidade
       const eventData = global.activeEvents.get(raidId);
       if (eventData) {
+        // Remover de todas as entradas anteriores no mapa
+        for (const [userId, data] of eventData.participantes) {
+          if (userId === member.id) {
+            eventData.participantes.delete(userId);
+          }
+        }
+
+        // Adicionar na nova posição
         eventData.participantes.set(member.id, {
           nick: member.nickname || member.user.username,
           userId: member.id,
@@ -679,39 +721,34 @@ class RaidAvalonHandler {
   }
 
   /**
-   * Retorna armas disponíveis por classe ✅ ATUALIZADO
+   * Retorna armas disponíveis por classe
    */
   static getArmasPorClasse(classKey) {
     const armas = {
-      tank: ['Martelo', 'Incubos', 'Para-tempo'], // Tank mantém Para-tempo
-      dps: ['Fura-bruma', 'Fulgurante', 'Quebra-reinos', 'Aguia', 'Foice-de-cristal', 'Ártico', 'Repetidor'],
-      healer: ['Cajado-Sagrado', 'Raiz-ferrea', 'Crosta'],
-      suporte: ['Chama-sombra'],
-      scout: ['Para-tempu'] // ✅ ALTERADO: Para-tempu com U
+      tank: ['Martelo', 'Incubus'],
+      dps: ['Fura-bruma', 'Fulgurante', 'Aguia', 'Quebra-reinos'],
+      healer: ['Queda-santa', 'Crosta'],
+      suporte: ['Chama-sombra', 'Para-tempo'],
+      scout: ['Para-tempo']
     };
     return armas[classKey] || [];
   }
 
   /**
-   * Retorna nome da arma pelo key ✅ ATUALIZADO
+   * Retorna nome da arma pelo key
    */
   static getArmaNomeByKey(key) {
     const map = {
       'martelo': 'Martelo',
-      'incubos': 'Incubos',
-      'para-tempo': 'Para-tempo', // Tank/Suporte
-      'para-tempu': 'Para-tempu', // ✅ ADICIONADO: Scout com U
+      'incubus': 'Incubus',
       'fura-bruma': 'Fura-bruma',
       'fulgurante': 'Fulgurante',
       'aguia': 'Águia',
       'quebra-reinos': 'Quebra-reinos',
-      'foice-de-cristal': 'Foice-de-cristal',
-      'artico': 'Ártico',
-      'repetidor': 'Repetidor',
-      'cajado-sagrado': 'Cajado-Sagrado',
-      'raiz-ferrea': 'Raiz-ferrea',
+      'queda-santa': 'Queda-santa',
       'crosta': 'Crosta',
-      'chama-sombra': 'Chama-sombra'
+      'chama-sombra': 'Chama-sombra',
+      'para-tempo': 'Para-tempo'
     };
     return map[key] || key;
   }
