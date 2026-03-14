@@ -8,7 +8,8 @@ const {
   TextInputStyle,
   PermissionFlagsBits,
   StringSelectMenuBuilder,
-  StringSelectMenuOptionBuilder
+  StringSelectMenuOptionBuilder,
+  ChannelType
 } = require('discord.js');
 const Database = require('../utils/database');
 
@@ -32,6 +33,138 @@ class ConfigActions {
 
   static async initialize() {
     console.log('[ConfigActions] Initialized');
+  }
+
+  // ✅ NOVO: Função para atualizar o painel de configurações no canal
+  static async updateConfigPanel(guild) {
+    try {
+      // Buscar o canal de configurações
+      const canalConfig = guild.channels.cache.find(
+        c => c.name === '🔧╠configurações' && c.type === ChannelType.GuildText
+      );
+
+      if (!canalConfig) {
+        console.log('[ConfigActions] Canal de configurações não encontrado');
+        return;
+      }
+
+      // Buscar configurações atualizadas
+      const config = global.guildConfig.get(guild.id) || {
+        idioma: 'PT-BR',
+        taxaGuilda: 10,
+        guildaRegistrada: null,
+        xpAtivo: true,
+        taxasBau: { royal: 10, black: 15, brecilien: 12, avalon: 20 },
+        taxaEmprestimo: 5
+      };
+
+      // Buscar mensagem do painel existente
+      const messages = await canalConfig.messages.fetch({ limit: 50 });
+      const painelConfig = messages.find(m =>
+        m.author.bot &&
+        m.embeds.length > 0 &&
+        m.embeds[0].title?.includes('CONFIGURAÇÕES')
+      );
+
+      if (!painelConfig) {
+        console.log('[ConfigActions] Painel de configurações não encontrado');
+        return;
+      }
+
+      // Criar novo embed com valores atualizados
+      const embed = new EmbedBuilder()
+        .setTitle('⚙️ **PAINEL DE CONFIGURAÇÕES**')
+        .setDescription('Configure as opções do bot para este servidor.\n\n*Apenas membros com cargo **ADM** podem alterar estas configurações.*')
+        .setColor(0x3498DB)
+        .addFields(
+          {
+            name: '🌐 **Idioma**',
+            value: `\`${config.idioma}\`\n*(Fixo por enquanto)*`,
+            inline: true
+          },
+          {
+            name: '💰 **Taxa da Guilda**',
+            value: `\`${config.taxaGuilda}%\`\nTaxa em eventos`,
+            inline: true
+          },
+          {
+            name: '🏰 **Guilda Registrada**',
+            value: config.guildaRegistrada
+              ? `**${config.guildaRegistrada.nome}**\n🌍 ${config.guildaRegistrada.server}\n✅ Verificada`
+              : '❌ *Nenhuma guilda registrada*',
+            inline: false
+          },
+          {
+            name: '⭐ **Sistema XP**',
+            value: config.xpAtivo ? '✅ Ativado' : '🔴 Desativado',
+            inline: true
+          },
+          {
+            name: '📦 **Taxa Venda Baú**',
+            value: config.taxasBau
+              ? `👑 ${config.taxasBau.royal}% | ⚫ ${config.taxasBau.black}%\n🌲 ${config.taxasBau.brecilien}% | 🔴 ${config.taxasBau.avalon}%`
+              : '🔴 Não configurado',
+            inline: true
+          },
+          {
+            name: '💳 **Taxa Empréstimo**',
+            value: `\`${config.taxaEmprestimo || 5}%\`\n✅ Ativo`,
+            inline: true
+          }
+        )
+        .setFooter({ text: 'Clique nos botões abaixo para configurar • Valores atualizados automaticamente' })
+        .setTimestamp();
+
+      // Botões
+      const buttons = [
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('config_idioma')
+            .setLabel('🌐 Idioma')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(true),
+          new ButtonBuilder()
+            .setCustomId('config_taxa_guilda')
+            .setLabel('💰 Taxa Guilda')
+            .setStyle(ButtonStyle.Primary),
+          new ButtonBuilder()
+            .setCustomId('config_registrar_guilda')
+            .setLabel('🏰 Registrar Guilda')
+            .setStyle(ButtonStyle.Success)
+        ),
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('config_xp')
+            .setLabel('⭐ Ativar/Desativar XP')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId('config_taxa_bau')
+            .setLabel('📦 Taxas Baú')
+            .setStyle(ButtonStyle.Primary),
+          new ButtonBuilder()
+            .setCustomId('config_taxa_emprestimo')
+            .setLabel('💳 Taxa Empréstimo')
+            .setStyle(ButtonStyle.Primary)
+        ),
+        new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId('config_atualizar_bot')
+            .setLabel('🔄 Atualizar Bot')
+            .setStyle(ButtonStyle.Danger)
+            .setEmoji('🔄')
+        )
+      ];
+
+      // Atualizar a mensagem
+      await painelConfig.edit({
+        embeds: [embed],
+        components: buttons
+      });
+
+      console.log('[ConfigActions] Painel de configurações atualizado com sucesso');
+    } catch (error) {
+      console.error('[ConfigActions] Erro ao atualizar painel de configurações:', error);
+    }
   }
 
   // Handler para taxa da guilda
@@ -93,6 +226,9 @@ class ConfigActions {
         content: `✅ Taxa da guilda atualizada para \`${novaTaxa}%\`!`,
         ephemeral: true
       });
+
+      // ✅ ATUALIZAR O PAINEL NO CANAL
+      await this.updateConfigPanel(interaction.guild);
 
       console.log(`[ConfigActions] Taxa guilda updated to ${novaTaxa}% for guild ${interaction.guild.id}`);
 
@@ -218,6 +354,9 @@ class ConfigActions {
         ephemeral: true
       });
 
+      // ✅ ATUALIZAR O PAINEL NO CANAL
+      await this.updateConfigPanel(interaction.guild);
+
       console.log(`[ConfigActions] Bau taxes updated for guild ${interaction.guild.id}`);
 
     } catch (error) {
@@ -290,6 +429,9 @@ class ConfigActions {
         content: `✅ Taxa de empréstimo atualizada para \`${taxa}%\`!`,
         ephemeral: true
       });
+
+      // ✅ ATUALIZAR O PAINEL NO CANAL
+      await this.updateConfigPanel(interaction.guild);
 
       console.log(`[ConfigActions] Loan tax updated to ${taxa}% for guild ${interaction.guild.id}`);
 
@@ -438,12 +580,12 @@ class ConfigActions {
 
         return interaction.editReply({
           content: `❌ **Guilda não encontrada!**\n\n` +
-                   `Não foi possível encontrar a guilda "**${nome}**" no servidor **${server}**.\n\n` +
-                   `**Verifique:**\n` +
-                   `• O nome da guilda está escrito corretamente (exatamente como no jogo)\n` +
-                   `• O servidor está correto\n` +
-                   `• A guilda existe e é pública no Albion\n\n` +
-                   `Clique em "Registrar Guilda" novamente para tentar com outro nome.`,
+            `Não foi possível encontrar a guilda "**${nome}**" no servidor **${server}**.\n\n` +
+            `**Verifique:**\n` +
+            `• O nome da guilda está escrito corretamente (exatamente como no jogo)\n` +
+            `• O servidor está correto\n` +
+            `• A guilda existe e é pública no Albion\n\n` +
+            `Clique em "Registrar Guilda" novamente para tentar com outro nome.`,
         });
       }
 
@@ -551,6 +693,9 @@ class ConfigActions {
         components: []
       });
 
+      // ✅ ATUALIZAR O PAINEL NO CANAL
+      await this.updateConfigPanel(interaction.guild);
+
       console.log(`[ConfigActions] Guild registered: ${nome} on ${server}`);
 
     } catch (error) {
@@ -630,7 +775,7 @@ class ConfigActions {
               }
 
               // Buscar match exato (case insensitive)
-              const exactMatch = guilds.find(g => 
+              const exactMatch = guilds.find(g =>
                 g.Name && g.Name.toLowerCase() === guildName.toLowerCase()
               );
 
@@ -645,7 +790,7 @@ class ConfigActions {
               }
 
               // Se não achou exato, verifica similaridade
-              const similarMatch = guilds.find(g => 
+              const similarMatch = guilds.find(g =>
                 g.Name && (
                   g.Name.toLowerCase().includes(guildName.toLowerCase()) ||
                   guildName.toLowerCase().includes(g.Name.toLowerCase())
@@ -725,6 +870,9 @@ class ConfigActions {
         ephemeral: true
       });
 
+      // ✅ ATUALIZAR O PAINEL NO CANAL
+      await this.updateConfigPanel(interaction.guild);
+
     } catch (error) {
       console.error(`[ConfigActions] Error handling XP:`, error);
       await interaction.reply({
@@ -743,11 +891,18 @@ class ConfigActions {
 
       await interaction.deferReply({ ephemeral: true });
 
-      const result = await setup.update();
+      const result = await setup.syncServer();
 
       const embed = new EmbedBuilder()
-        .setTitle('🔄 ATUALIZAÇÃO CONCLUÍDA')
-        .setDescription(result.message)
+        .setTitle('🔄 SINCRONIZAÇÃO CONCLUÍDA')
+        .setDescription(
+          `✅ **Canais criados:** ${result.canaisCriados.length}\n` +
+          `✅ **Cargos criados:** ${result.cargosCriados.length}\n` +
+          `✅ **Painéis atualizados:** ${result.paineisAtualizados.length}\n` +
+          `✅ **Comandos registrados:** ${result.comandosRegistrados ? 'Sim' : 'Não'}\n` +
+          `✅ **Botões destravados:** ${result.botoesDestravados.length} canais\n\n` +
+          `O painel de configurações foi atualizado automaticamente!`
+        )
         .setColor(0x2ECC71)
         .setTimestamp();
 
