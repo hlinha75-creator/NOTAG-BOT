@@ -16,37 +16,37 @@ const path = require('path');
  */
 class RaidAvalonHandler {
   constructor() {
-    // Configuração das classes e armas disponíveis
+    // ✅ ATUALIZADO: Configuração das classes e armas disponíveis
     this.classes = {
       tank: {
         nome: 'Tank',
         emoji: '🛡️',
         cor: 0x3498DB,
-        armas: ['Martelo', 'Incubus']
-      },
-      dps: {
-        nome: 'DPS',
-        emoji: '⚔️',
-        cor: 0xE74C3C,
-        armas: ['Fura-bruma', 'Fulgurante', 'Aguia', 'Quebra-reinos']
+        armas: ['Martelo', 'Incubus', 'Para-tempo']
       },
       healer: {
         nome: 'Healer',
         emoji: '💚',
         cor: 0x2ECC71,
-        armas: ['Queda-santa', 'Crosta']
+        armas: ['Cajado-Sagrado', 'Raiz-ferrea', 'Crosta']
       },
       suporte: {
         nome: 'Suporte',
         emoji: '✨',
         cor: 0x9B59B6,
-        armas: ['Chama-sombra', 'Para-tempo']
+        armas: ['Chama-sombra']
       },
       scout: {
         nome: 'Scout',
         emoji: '👁️',
         cor: 0xF39C12,
         armas: ['Para-tempo']
+      },
+      dps: {
+        nome: 'DPS',
+        emoji: '⚔️',
+        cor: 0xE74C3C,
+        armas: ['Fura-bruma', 'Fulgurante', 'Quebra-reinos', 'Aguia', 'Foice-de-cristal', 'Ártico', 'Repetidor']
       }
     };
   }
@@ -169,13 +169,13 @@ class RaidAvalonHandler {
           .setLabel('🛡️ Configurar Tank')
           .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
-          .setCustomId('raid_config_dps')
-          .setLabel('⚔️ Configurar DPS')
-          .setStyle(ButtonStyle.Danger),
-        new ButtonBuilder()
           .setCustomId('raid_config_healer')
           .setLabel('💚 Configurar Healer')
-          .setStyle(ButtonStyle.Success)
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId('raid_config_dps')
+          .setLabel('⚔️ Configurar DPS')
+          .setStyle(ButtonStyle.Danger)
       );
       rows.push(row1);
 
@@ -225,8 +225,8 @@ class RaidAvalonHandler {
     let description = '';
     const classes = {
       tank: { nome: '🛡️ Tank', limite: raidData.classes?.tank?.limite || 0 },
-      dps: { nome: '⚔️ DPS', limite: raidData.classes?.dps?.limite || 0 },
       healer: { nome: '💚 Healer', limite: raidData.classes?.healer?.limite || 0 },
+      dps: { nome: '⚔️ DPS', limite: raidData.classes?.dps?.limite || 0 },
       suporte: { nome: '✨ Suporte', limite: raidData.classes?.suporte?.limite || 0 },
       scout: { nome: '👁️ Scout', limite: raidData.classes?.scout?.limite || 0 }
     };
@@ -658,7 +658,7 @@ class RaidAvalonHandler {
         selectMenu.addOptions(
           new StringSelectMenuOptionBuilder()
             .setLabel(arma)
-            .setValue(arma.toLowerCase().replace(/\s+/g, '-'))
+            .setValue(this.getArmaKey(arma))
             .setDescription(`Usar ${arma}`)
         );
       });
@@ -772,34 +772,61 @@ class RaidAvalonHandler {
   }
 
   /**
-   * Retorna armas disponíveis por classe
+   * Retorna armas disponíveis por classe ✅ ATUALIZADO
    */
   static getArmasPorClasse(classKey) {
     const armas = {
-      tank: ['Martelo', 'Incubus'],
-      dps: ['Fura-bruma', 'Fulgurante', 'Aguia', 'Quebra-reinos'],
-      healer: ['Queda-santa', 'Crosta'],
-      suporte: ['Chama-sombra', 'Para-tempo'],
-      scout: ['Para-tempo']
+      tank: ['Martelo', 'Incubus', 'Para-tempo'],
+      healer: ['Cajado-Sagrado', 'Raiz-ferrea', 'Crosta'],
+      suporte: ['Chama-sombra'],
+      scout: ['Para-tempo'],
+      dps: ['Fura-bruma', 'Fulgurante', 'Quebra-reinos', 'Aguia', 'Foice-de-cristal', 'Ártico', 'Repetidor']
     };
     return armas[classKey] || [];
   }
 
   /**
-   * Retorna nome da arma pelo key
+   * Retorna key da arma pelo nome (para imagens) ✅ ATUALIZADO
+   */
+  static getArmaKey(armaNome) {
+    const map = {
+      'Martelo': 'martelo',
+      'Incubus': 'incubus',
+      'Para-tempo': 'para-tempo',
+      'Cajado-Sagrado': 'cajado-sagrado',
+      'Raiz-ferrea': 'raiz-ferrea',
+      'Crosta': 'crosta',
+      'Chama-sombra': 'chama-sombra',
+      'Fura-bruma': 'fura-bruma',
+      'Fulgurante': 'fulgurante',
+      'Quebra-reinos': 'quebra-reinos',
+      'Aguia': 'aguia',
+      'Foice-de-cristal': 'foice-de-cristal',
+      'Ártico': 'artico',
+      'Repetidor': 'repetidor'
+    };
+    return map[armaNome] || armaNome.toLowerCase().replace(/\s+/g, '-');
+  }
+
+  /**
+   * Retorna nome da arma pelo key ✅ ATUALIZADO
    */
   static getArmaNomeByKey(key) {
     const map = {
       'martelo': 'Martelo',
       'incubus': 'Incubus',
-      'fura-bruma': 'Fura-bruma',
-      'fulgurante': 'Fulgurante',
-      'aguia': 'Águia',
-      'quebra-reinos': 'Quebra-reinos',
-      'queda-santa': 'Queda-santa',
+      'para-tempo': 'Para-tempo',
+      'cajado-sagrado': 'Cajado-Sagrado',
+      'raiz-ferrea': 'Raiz-ferrea',
       'crosta': 'Crosta',
       'chama-sombra': 'Chama-sombra',
-      'para-tempo': 'Para-tempo'
+      'fura-bruma': 'Fura-bruma',
+      'fulgurante': 'Fulgurante',
+      'quebra-reinos': 'Quebra-reinos',
+      'aguia': 'Aguia',
+      'foice-de-cristal': 'Foice-de-cristal',
+      'artico': 'Ártico',
+      'repetidor': 'Repetidor'
     };
     return map[key] || key;
   }
