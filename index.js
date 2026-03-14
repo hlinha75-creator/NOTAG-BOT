@@ -34,8 +34,8 @@ const XpHandler = require('./handlers/xpHandler');
 const XpEventHandler = require('./handlers/xpEventHandler');
 const RaidAvalonHandler = require('./handlers/raidAvalonHandler');
 const KillboardHandler = require('./handlers/killboardHandler');
-const MarketHandler = require('./handlers/marketHandler'); // 🛒 NOVO
-const MarketApi = require('./handlers/albionMarketApi'); // 🛒 NOVO
+const MarketHandler = require('./handlers/marketHandler');
+const MarketApi = require('./handlers/albionMarketApi');
 
 // ==================== IMPORTAR COMANDOS ====================
 const instalarCommand = require('./commands/instalar');
@@ -46,7 +46,6 @@ const limparSaldoCommand = require('./commands/limpar-saldo');
 const limparXpCommand = require('./commands/limpar-xp');
 const ajudaCommand = require('./commands/ajuda');
 const killboardCommand = require('./commands/killboard');
-const saldosCommand = require('./commands/saldos'); // 💰 ADICIONADO
 
 // Criar cliente
 const client = new Client({
@@ -74,7 +73,6 @@ client.commands.set(limparSaldoCommand.data.name, limparSaldoCommand);
 client.commands.set(limparXpCommand.data.name, limparXpCommand);
 client.commands.set(ajudaCommand.data.name, ajudaCommand);
 client.commands.set(killboardCommand.data.name, killboardCommand);
-client.commands.set(saldosCommand.data.name, saldosCommand); // 💰 ADICIONADO
 
 // ==================== INICIALIZAR VARIÁVEIS GLOBAIS ====================
 global.registrosPendentes = new Map();
@@ -98,8 +96,8 @@ global.pendingBauSales = new Map();
 global.client = client;
 global.xpDepositTemp = new Map();
 global.killboardProcessedEvents = new Map();
-global.marketSearches = new Map(); // 🛒 NOVO: Armazenar buscas de mercado
-global.depositTemp = new Map(); // 💵 NOVO: Temporários para sistema de depósito direto
+global.marketSearches = new Map();
+global.depositTemp = new Map();
 
 // Carregar dados persistidos (blacklist e histórico)
 try {
@@ -141,9 +139,13 @@ client.once(Events.ClientReady, async () => {
   await Database.initialize();
   RegistrationActions.initialize();
   EventHandler.initialize();
-  console.log('📝 Sistemas inicializados: Database + Registro + Eventos');
 
-  // 🛒 NOVO: Inicializar cache de itens do mercado
+  // ✅ NOVO: Carregar raids salvas
+  RaidAvalonHandler.loadRaids();
+
+  console.log('📝 Sistemas inicializados: Database + Registro + Eventos + Raids');
+
+  // Inicializar sistema de mercado
   try {
     console.log('🛒 Inicializando sistema de mercado...');
     await MarketApi.loadItemsCache();
@@ -179,8 +181,7 @@ client.once(Events.ClientReady, async () => {
     limparSaldoCommand.data.toJSON(),
     limparXpCommand.data.toJSON(),
     ajudaCommand.data.toJSON(),
-    killboardCommand.data.toJSON(),
-    saldosCommand.data.toJSON() // 💰 ADICIONADO
+    killboardCommand.data.toJSON()
   ];
 
   const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
@@ -334,8 +335,8 @@ client.on(Events.InteractionCreate, async interaction => {
       const customId = interaction.customId;
 
       if (customId === 'confirmar_limpar_eventos' || customId === 'cancelar_limpar_eventos' ||
-        customId === 'confirmar_limpar_saldo' || customId === 'cancelar_limpar_saldo' ||
-        customId === 'confirmar_limpar_xp' || customId === 'cancelar_limpar_xp') {
+          customId === 'confirmar_limpar_saldo' || customId === 'cancelar_limpar_saldo' ||
+          customId === 'confirmar_limpar_xp' || customId === 'cancelar_limpar_xp') {
         return;
       }
 
@@ -377,7 +378,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 🛒 MERCADO ALBION - NOVO SISTEMA DE NAVEGAÇÃO
+      // MERCADO ALBION
       if (customId === 'market_browse_category') {
         await MarketHandler.handleBrowseCategory(interaction);
         return;
@@ -623,7 +624,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 💵 NOVO SISTEMA DE DEPÓSITO - FLUXO DE SELEÇÃO DE USUÁRIOS
+      // NOVO SISTEMA DE DEPÓSITO - FLUXO DE SELEÇÃO DE USUÁRIOS
       if (customId === 'dep_select_users') {
         await DepositHandler.openUserSelection(interaction);
         return;
@@ -1014,7 +1015,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 🛒 MERCADO - Navegação por Categoria
+      // MERCADO - Navegação por Categoria
       if (interaction.customId.startsWith('market_select_category_')) {
         const searchId = interaction.customId.replace('market_select_category_', '');
         const category = interaction.values[0];
@@ -1069,7 +1070,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 💵 NOVO: DEPÓSITO - Seleção de usuários
+      // DEPÓSITO - Seleção de usuários
       if (interaction.customId === 'dep_select_users_menu') {
         await DepositHandler.processUserSelection(interaction);
         return;
@@ -1151,7 +1152,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 💵 DEPÓSITO - Novo fluxo (valor normal, sem milhões)
+      // DEPÓSITO - Novo fluxo (valor normal, sem milhões)
       if (interaction.customId === 'modal_deposito_valor') {
         await DepositHandler.processDeposito(interaction);
         return;
@@ -1237,7 +1238,7 @@ client.on(Events.InteractionCreate, async interaction => {
         return;
       }
 
-      // 🛒 MERCADO - Busca Avançada
+      // MERCADO - Busca Avançada
       if (interaction.customId === 'market_modal_search') {
         await MarketHandler.processSearchModal(interaction);
         return;
@@ -1295,6 +1296,10 @@ process.on('SIGINT', async () => {
     }
     fs.writeFileSync('./data/killboard_config.json', JSON.stringify(killboardConfigs, null, 2));
 
+    // ✅ NOVO: Salvar eventos e raids ativos
+    EventHandler.saveEvents();
+    RaidAvalonHandler.saveRaids();
+
     console.log('✅ Dados salvos com sucesso!');
   } catch (error) {
     console.error('❌ Erro ao salvar dados:', error);
@@ -1319,6 +1324,10 @@ process.on('SIGTERM', async () => {
       }
     }
     fs.writeFileSync('./data/killboard_config.json', JSON.stringify(killboardConfigs, null, 2));
+
+    // ✅ NOVO: Salvar eventos e raids ativos
+    EventHandler.saveEvents();
+    RaidAvalonHandler.saveRaids();
 
     console.log('✅ Dados salvos com sucesso!');
   } catch (error) {

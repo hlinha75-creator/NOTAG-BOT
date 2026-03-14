@@ -6,14 +6,98 @@ const {
   PermissionFlagsBits,
   ChannelType
 } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
 class EventHandler {
   constructor() {
     this.activeEvents = new Map();
+    this.dataPath = path.join(__dirname, '..', 'data', 'active_events.json');
   }
 
   static initialize() {
     if (!global.activeEvents) global.activeEvents = new Map();
+
+    // ✅ CORREÇÃO: Carregar eventos salvos do arquivo
+    this.loadEvents();
+
+    console.log(`📝 EventHandler inicializado. Eventos ativos carregados: ${global.activeEvents.size}`);
+  }
+
+  // ✅ NOVO: Salvar eventos em arquivo
+  static saveEvents() {
+    try {
+      const dataDir = path.join(__dirname, '..', 'data');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+
+      const eventsArray = [];
+
+      for (const [eventId, eventData] of global.activeEvents) {
+        // Converter Map de participantes para array
+        const participantesArray = [];
+        if (eventData.participantes instanceof Map) {
+          for (const [userId, data] of eventData.participantes) {
+            participantesArray.push([userId, data]);
+          }
+        } else if (typeof eventData.participantes === 'object') {
+          // Se já for objeto (depois de recuperado), converter
+          for (const [userId, data] of Object.entries(eventData.participantes)) {
+            participantesArray.push([userId, data]);
+          }
+        }
+
+        eventsArray.push([
+          eventId,
+          {
+            ...eventData,
+            participantes: participantesArray
+          }
+        ]);
+      }
+
+      fs.writeFileSync(
+        path.join(dataDir, 'active_events.json'),
+        JSON.stringify(eventsArray, null, 2)
+      );
+
+      console.log(`💾 ${eventsArray.length} eventos ativos salvos.`);
+    } catch (error) {
+      console.error('❌ Erro ao salvar eventos:', error);
+    }
+  }
+
+  // ✅ NOVO: Carregar eventos do arquivo
+  static loadEvents() {
+    try {
+      const filePath = path.join(__dirname, '..', 'data', 'active_events.json');
+
+      if (!fs.existsSync(filePath)) {
+        console.log('📁 Nenhum arquivo de eventos ativos encontrado.');
+        return;
+      }
+
+      const data = fs.readFileSync(filePath, 'utf8');
+      const eventsArray = JSON.parse(data);
+
+      for (const [eventId, eventData] of eventsArray) {
+        // Converter array de participantes de volta para Map
+        const participantesMap = new Map();
+        if (Array.isArray(eventData.participantes)) {
+          for (const [userId, data] of eventData.participantes) {
+            participantesMap.set(userId, data);
+          }
+        }
+
+        eventData.participantes = participantesMap;
+        global.activeEvents.set(eventId, eventData);
+      }
+
+      console.log(`✅ ${eventsArray.length} eventos ativos carregados do arquivo.`);
+    } catch (error) {
+      console.error('❌ Erro ao carregar eventos:', error);
+    }
   }
 
   static async createEvent(interaction) {
@@ -84,7 +168,7 @@ class EventHandler {
 
       const eventData = {
         id: eventId,
-        guildId: guild.id, // ✅ CORREÇÃO: Adicionado guildId
+        guildId: guild.id,
         nome: nome,
         descricao: descricao,
         requisitos: requisitos,
@@ -113,6 +197,9 @@ class EventHandler {
 
       eventData.messageId = msg.id;
       global.activeEvents.set(eventId, eventData);
+
+      // ✅ CORREÇÃO: Salvar eventos após criar
+      this.saveEvents();
 
       await interaction.editReply({
         content: `✅ **Evento criado com sucesso!**\n\n🎮 **${nome}**\n🕐 ${horario}\n🔊 Canal: <#${canalVoz.id}>`
@@ -160,7 +247,7 @@ class EventHandler {
     const embed = new EmbedBuilder()
       .setTitle(`${statusEmojis[eventData.status]} ┃ ${eventData.nome}`)
       .setDescription(
-        `\> ${eventData.descricao}\n\n` +
+        `\\> ${eventData.descricao}\n\n` +
         `**👤 Criador:** <@${eventData.criadorId}>\n` +
         `**🕐 Horário:** \`${eventData.horario}\`\n` +
         `**📊 Status:** ${statusTextos[eventData.status]}\n` +
@@ -318,6 +405,9 @@ class EventHandler {
         components: botoes
       });
 
+      // ✅ CORREÇÃO: Salvar estado após atualizar painel
+      this.saveEvents();
+
     } catch (error) {
       console.error('[updateEventPanel] Erro ao atualizar painel:', error);
     }
@@ -337,7 +427,7 @@ class EventHandler {
     try {
       const eventData = global.activeEvents.get(eventId);
       if (!eventData) {
-        return interaction.reply({ content: '❌ Evento não encontrado!', ephemeral: true });
+        return interaction.reply({ content: '❌ Evento não encontrado! Ele pode ter sido encerrado ou cancelado.', ephemeral: true });
       }
 
       if (eventData.trancado) {
@@ -378,6 +468,9 @@ class EventHandler {
           participante.tempoInicio = Date.now();
         }
 
+        // ✅ Salvar após modificar participante
+        this.saveEvents();
+
         return interaction.reply({
           content: `✅ Você já está no evento! ${eventData.status === 'em_andamento' ? 'Sua participação está sendo contada!' : ''}`,
           ephemeral: true
@@ -410,6 +503,9 @@ class EventHandler {
         content: mensagem,
         ephemeral: true
       });
+
+      // ✅ Salvar após adicionar participante
+      this.saveEvents();
 
     } catch (error) {
       console.error('[handleParticipar] Erro ao participar:', error);
@@ -460,6 +556,9 @@ class EventHandler {
         });
       }
 
+      // ✅ Salvar após pausar/retomar
+      this.saveEvents();
+
     } catch (error) {
       console.error('[handlePausar] Erro ao pausar:', error);
       await interaction.reply({ content: '❌ Erro ao pausar participação.', ephemeral: true });
@@ -498,6 +597,9 @@ class EventHandler {
         content: '🚀 **Evento iniciado!**\nA contagem de participação começou para todos os participantes!',
         ephemeral: true
       });
+
+      // ✅ Salvar após iniciar
+      this.saveEvents();
 
     } catch (error) {
       console.error('[handleIniciar] Erro ao iniciar:', error);
@@ -545,6 +647,9 @@ class EventHandler {
 
       await this.updateEventPanel(interaction, eventData);
 
+      // ✅ Salvar após pausar/retomar global
+      this.saveEvents();
+
     } catch (error) {
       console.error('[handlePausarGlobal] Erro ao pausar/retomar global:', error);
       await interaction.reply({ content: '❌ Erro ao pausar evento.', ephemeral: true });
@@ -578,6 +683,9 @@ class EventHandler {
           : '🔓 **Evento destrancado!** Novos participantes podem entrar agora.',
         ephemeral: true
       });
+
+      // ✅ Salvar após trancar/destrancar
+      this.saveEvents();
 
     } catch (error) {
       console.error('[handleTrancar] Erro ao trancar:', error);
@@ -615,6 +723,9 @@ class EventHandler {
 
       global.activeEvents.delete(eventId);
 
+      // ✅ Salvar após cancelar (remover do arquivo)
+      this.saveEvents();
+
       await interaction.reply({
         content: '🗑️ **Evento cancelado** e todos os recursos foram liberados.',
         ephemeral: true
@@ -633,7 +744,7 @@ class EventHandler {
       const eventData = global.activeEvents.get(eventId);
       if (!eventData) {
         console.error(`[handleFinalizar] Evento ${eventId} não encontrado em global.activeEvents`);
-        return interaction.reply({ content: '❌ Evento não encontrado!', ephemeral: true });
+        return interaction.reply({ content: '❌ Evento não encontrado! Ele pode ter sido encerrado ou cancelado anteriormente.', ephemeral: true });
       }
 
       const isCriador = interaction.user.id === eventData.criadorId;
@@ -696,8 +807,8 @@ class EventHandler {
       // ✅ CORREÇÃO: Garantir que guildId está presente antes de salvar
       const eventDataToSave = {
         ...eventData,
-        guildId: eventData.guildId || interaction.guild.id, // Garantir guildId
-        participantes: new Map(eventData.participantes) // Preservar Map
+        guildId: eventData.guildId || interaction.guild.id,
+        participantes: new Map(eventData.participantes)
       };
 
       // Salvar em eventos finalizados antes de deletar
@@ -706,6 +817,9 @@ class EventHandler {
       console.log(`[EventHandler] Event ${eventId} saved to finishedEvents with guildId: ${eventDataToSave.guildId}`);
 
       global.activeEvents.delete(eventId);
+
+      // ✅ Salvar após finalizar (remover do arquivo de ativos)
+      this.saveEvents();
 
       await interaction.reply({
         content: '✅ **Evento finalizado com sucesso!**\n📊 Resumo criado em eventos encerrados.',
@@ -790,7 +904,7 @@ class EventHandler {
       const embedResumo = new EmbedBuilder()
         .setTitle(`✅ ┃ ${eventData.nome.toUpperCase()}`)
         .setDescription(
-          `\> ${eventData.descricao}\n\n` +
+          `\\> ${eventData.descricao}\n\n` +
           `**👤 Criador:** <@${eventData.criadorId}>\n` +
           `**🕐 Horário:** \`${eventData.horario}\`\n` +
           `**⏱️ Duração Total:** \`${tempoTotalMin}\` minutos\n` +

@@ -8,6 +8,8 @@ const {
   PermissionFlagsBits,
   ChannelType
 } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
 /**
  * Handler para Raid Avalon - Sistema de Classes e Armas
@@ -49,6 +51,92 @@ class RaidAvalonHandler {
     };
   }
 
+  // ✅ NOVO: Salvar raids em arquivo
+  static saveRaids() {
+    try {
+      const dataDir = path.join(__dirname, '..', 'data');
+
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+
+      const raidsArray = [];
+
+      for (const [raidId, raidData] of global.activeRaids || []) {
+        // Converter participantes de cada classe para array
+        const classesSerialized = {};
+
+        if (raidData.classes) {
+          for (const [classKey, classData] of Object.entries(raidData.classes)) {
+            classesSerialized[classKey] = {
+              limite: classData.limite || 0,
+              participantes: Array.isArray(classData.participantes) 
+                ? classData.participantes 
+                : []
+            };
+          }
+        }
+
+        raidsArray.push([
+          raidId,
+          {
+            ...raidData,
+            classes: classesSerialized
+          }
+        ]);
+      }
+
+      fs.writeFileSync(
+        path.join(dataDir, 'active_raids.json'),
+        JSON.stringify(raidsArray, null, 2)
+      );
+
+      console.log(`💾 ${raidsArray.length} raids ativas salvas.`);
+    } catch (error) {
+      console.error('❌ Erro ao salvar raids:', error);
+    }
+  }
+
+  // ✅ NOVO: Carregar raids do arquivo
+  static loadRaids() {
+    try {
+      const filePath = path.join(__dirname, '..', 'data', 'active_raids.json');
+
+      if (!fs.existsSync(filePath)) {
+        console.log('📁 Nenhum arquivo de raids ativas encontrado.');
+        return;
+      }
+
+      const data = fs.readFileSync(filePath, 'utf8');
+      const raidsArray = JSON.parse(data);
+
+      for (const [raidId, raidData] of raidsArray) {
+        // Garantir que todas as classes tenham a estrutura correta
+        if (!raidData.classes) {
+          raidData.classes = {
+            tank: { limite: 0, participantes: [] },
+            dps: { limite: 0, participantes: [] },
+            healer: { limite: 0, participantes: [] },
+            suporte: { limite: 0, participantes: [] },
+            scout: { limite: 0, participantes: [] }
+          };
+        }
+
+        global.activeRaids.set(raidId, raidData);
+
+        // Adicionar também em activeEvents para compatibilidade
+        global.activeEvents.set(raidId, {
+          ...raidData,
+          participantes: this.getAllParticipantsMap(raidData)
+        });
+      }
+
+      console.log(`✅ ${raidsArray.length} raids ativas carregadas do arquivo.`);
+    } catch (error) {
+      console.error('❌ Erro ao carregar raids:', error);
+    }
+  }
+
   /**
    * Cria o modal de configuração de classes (após o modal inicial)
    */
@@ -62,7 +150,7 @@ class RaidAvalonHandler {
       const embed = new EmbedBuilder()
         .setTitle('🏰 Configurar Classes - Raid Avalon')
         .setDescription(
-          `\*\*${raidData.nome}\*\*\n\n` +
+          `**${raidData.nome}**\n\n` +
           `Configure os limites de participantes por classe:\n` +
           `• Deixe em branco ou 0 para não ter limite\n` +
           `• O limite total é: ${raidData.limiteTotal || 'Sem limite'}\n\n` +
@@ -148,7 +236,7 @@ class RaidAvalonHandler {
       description += `${data.nome}: ${limiteText}\n`;
     }
 
-    description += `\n👥 \*\*Limite Total:\*\* ${raidData.limiteTotal || 'Sem limite'}`;
+    description += `\n👥 **Limite Total:** ${raidData.limiteTotal || 'Sem limite'}`;
 
     embed.setDescription(description);
     return embed;
@@ -352,8 +440,11 @@ class RaidAvalonHandler {
       // Limpar temp
       global.raidTemp.delete(interaction.user.id);
 
+      // ✅ Salvar raids após criar
+      this.saveRaids();
+
       await interaction.editReply({
-        content: `✅ \*\*Raid Avalon criada com sucesso!\*\*\n\n🏰 \*\*${raidData.nome}\*\*\n🕐 ${raidData.horario}\n🔊 Canal: <#${canalVoz.id}>`
+        content: `✅ **Raid Avalon criada com sucesso!**\n\n🏰 **${raidData.nome}**\n🕐 ${raidData.horario}\n🔊 Canal: <#${canalVoz.id}>`
       });
 
       console.log(`🏰 Raid Avalon criada: ${raidData.nome} por ${interaction.user.tag}`);
@@ -409,7 +500,7 @@ class RaidAvalonHandler {
     for (const [key, data] of Object.entries(raidData.classes || {})) {
       const total = data.participantes?.length || 0;
       const limite = data.limite > 0 ? `/${data.limite}` : '';
-      classesText += `${classEmojis[key]} \*\*${key.toUpperCase()}\*\*: ${total}${limite}\n`;
+      classesText += `${classEmojis[key]} **${key.toUpperCase()}**: ${total}${limite}\n`;
 
       if (data.participantes && data.participantes.length > 0) {
         data.participantes.forEach(p => {
@@ -423,11 +514,11 @@ class RaidAvalonHandler {
       .setTitle(`${statusEmojis[raidData.status] || '⏳'} 🏰 RAID AVALON ┃ ${raidData.nome}`)
       .setDescription(
         `\\> ${raidData.descricao}\n\n` +
-        `\*\*👤 Criador:\*\* <@${raidData.criadorId}>\n` +
-        `\*\*🕐 Horário:\*\* \\`${raidData.horario}\\`\n` +
-        `\*\*📊 Status:\*\* ${raidData.status === 'aguardando' ? 'Aguardando' : 'Em Andamento'}\n` +
-        `\*\*🔊 Canal:\*\* <#${raidData.canalVozId}>\n` +
-        `\*\*👥 Total:\*\* ${this.getTotalParticipants(raidData)}/${raidData.limiteTotal || '∞'}`
+        `**👤 Criador:** <@${raidData.criadorId}>\n` +
+        `**🕐 Horário:** \`${raidData.horario}\`\n` +
+        `**📊 Status:** ${raidData.status === 'aguardando' ? 'Aguardando' : 'Em Andamento'}\n` +
+        `**🔊 Canal:** <#${raidData.canalVozId}>\n` +
+        `**👥 Total:** ${this.getTotalParticipants(raidData)}/${raidData.limiteTotal || '∞'}`
       )
       .setColor(0x9B59B6)
       .addFields({
@@ -575,7 +666,7 @@ class RaidAvalonHandler {
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
       await interaction.reply({
-        content: `🎮 \*\*Escolha sua arma para ${classKey.toUpperCase()}:\*\*`,
+        content: `🎮 **Escolha sua arma para ${classKey.toUpperCase()}:**`,
         components: [row],
         ephemeral: true
       });
@@ -635,15 +726,18 @@ class RaidAvalonHandler {
       // Atualizar painel
       await this.updateRaidPanel(interaction, raidData);
 
+      // ✅ Salvar após adicionar participante
+      this.saveRaids();
+
       // Enviar imagens do set + arma
       const armaImagePath = `png/raid/${weaponKey}.png`;
       const setSkipPath = `png/raid/set-skip.png`;
 
       try {
         await interaction.reply({
-          content: `✅ \*\*Você entrou na raid como ${classKey.toUpperCase()}!\*\*\n\n` +
-            `⚔️ \*\*Arma:\*\* ${armaNome}\n` +
-            `📋 \*\*Set recomendado:\*\*`,
+          content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
+            `⚔️ **Arma:** ${armaNome}\n` +
+            `📋 **Set recomendado:**`,
           files: [armaImagePath, setSkipPath],
           ephemeral: true
         });
@@ -651,18 +745,18 @@ class RaidAvalonHandler {
         // Tentar enviar só o set se a imagem da arma não existir
         try {
           await interaction.reply({
-            content: `✅ \*\*Você entrou na raid como ${classKey.toUpperCase()}!\*\*\n\n` +
-              `⚔️ \*\*Arma:\*\* ${armaNome}\n` +
-              `📋 \*\*Set recomendado:\*\*`,
+            content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
+              `⚔️ **Arma:** ${armaNome}\n` +
+              `📋 **Set recomendado:**`,
             files: [setSkipPath],
             ephemeral: true
           });
         } catch (setError) {
           // Se nem o set existir, envia sem imagens
           await interaction.reply({
-            content: `✅ \*\*Você entrou na raid como ${classKey.toUpperCase()}!\*\*\n\n` +
-              `⚔️ \*\*Arma:\*\* ${armaNome}\n\n` +
-              `⚠️ \*Imagens do set não encontradas.\*`,
+            content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
+              `⚔️ **Arma:** ${armaNome}\n\n` +
+              `⚠️ *Imagens do set não encontradas.*`,
             ephemeral: true
           });
         }
@@ -816,9 +910,12 @@ class RaidAvalonHandler {
 
       await this.updateRaidPanel(interaction, raidData);
 
+      // ✅ Salvar após iniciar
+      this.saveRaids();
+
       // ✅ CORREÇÃO: Usar editReply em vez de reply
       await interaction.editReply({
-        content: '🚀 \*\*Raid iniciada!\*\* Todos os participantes foram movidos para o canal de voz!',
+        content: '🚀 **Raid iniciada!** Todos os participantes foram movidos para o canal de voz!',
         ephemeral: true
       });
 
@@ -933,9 +1030,12 @@ class RaidAvalonHandler {
       global.activeRaids.delete(raidId);
       global.activeEvents.delete(raidId);
 
+      // ✅ Salvar após finalizar (remover do arquivo)
+      this.saveRaids();
+
       // ✅ CORREÇÃO: Usar editReply em vez de reply
       await interaction.editReply({
-        content: '✅ \*\*Raid finalizada com sucesso!\*\*\n💰 Use o botão "Simular Evento" no canal de eventos encerrados para calcular o loot.',
+        content: '✅ **Raid finalizada com sucesso!**\n💰 Use o botão "Simular Evento" no canal de eventos encerrados para calcular o loot.',
         ephemeral: true
       });
 
@@ -988,9 +1088,12 @@ class RaidAvalonHandler {
       global.activeRaids.delete(raidId);
       global.activeEvents.delete(raidId);
 
+      // ✅ Salvar após cancelar (remover do arquivo)
+      this.saveRaids();
+
       // ✅ CORREÇÃO: Usar editReply
       await interaction.editReply({
-        content: '🗑️ \*\*Raid cancelada!\*\*',
+        content: '🗑️ **Raid cancelada!**',
         ephemeral: true
       });
 
@@ -1029,7 +1132,7 @@ class RaidAvalonHandler {
       let resumo = '';
       let totalParticipantes = 0;
       for (const [key, data] of Object.entries(raidData.classes || {})) {
-        resumo += `\*\*${key.toUpperCase()}\*\* (${data.participantes?.length || 0}):\n`;
+        resumo += `**${key.toUpperCase()}** (${data.participantes?.length || 0}):\n`;
         totalParticipantes += data.participantes?.length || 0;
         if (data.participantes) {
           data.participantes.forEach(p => {
@@ -1042,12 +1145,12 @@ class RaidAvalonHandler {
       const embed = new EmbedBuilder()
         .setTitle(`✅ RAID AVALON FINALIZADA ┃ ${raidData.nome}`)
         .setDescription(
-          `\*\*Criador:\*\* <@${raidData.criadorId}>\n` +
-          `\*\*Horário:\*\* ${raidData.horario}\n` +
-          `\*\*Duração:\*\* ${tempoTotalMin} minutos\n` +
-          `\*\*Total:\*\* ${totalParticipantes} participantes\n` +
-          `\*\*Taxa Guilda:\*\* ${taxaGuilda}%\n\n` +
-          `\*\*Participantes por Classe:\*\*\n${resumo}`
+          `**Criador:** <@${raidData.criadorId}>\n` +
+          `**Horário:** ${raidData.horario}\n` +
+          `**Duração:** ${tempoTotalMin} minutos\n` +
+          `**Total:** ${totalParticipantes} participantes\n` +
+          `**Taxa Guilda:** ${taxaGuilda}%\n\n` +
+          `**Participantes por Classe:**\n${resumo}`
         )
         .setColor(0x2ECC71)
         .setTimestamp();
