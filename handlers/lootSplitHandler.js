@@ -44,6 +44,84 @@ class LootSplitHandler {
     return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
   }
 
+  // ✅ NOVO: Atualizar painel de saldo da guilda no canal financeiro
+  static async updateGuildBalancePanel(guild) {
+    try {
+      const canalFinanceiro = guild.channels.cache.find(c => c.name === '📊╠financeiro');
+      if (!canalFinanceiro) {
+        console.log('[LootSplit] Canal financeiro não encontrado para atualizar painel');
+        return;
+      }
+
+      // Buscar saldo da guilda no banco (transações do tipo credito para GUILD_BANK)
+      let saldoGuilda = 0;
+      try {
+        // Tentar buscar do Database usando método existente ou calcular manualmente
+        const transactions = await Database.getTransactionsByUser?.('GUILD_BANK', guild.id) || [];
+        if (transactions.length > 0) {
+          saldoGuilda = transactions
+            .filter(t => t.type === 'credito')
+            .reduce((sum, t) => sum + (t.amount || 0), 0);
+        } else {
+          // Fallback: tentar buscar estatísticas detalhadas
+          const stats = await Database.getGuildDetailedStats?.(guild.id);
+          if (stats) {
+            saldoGuilda = stats.arrecadacaoTaxas || stats.saldoGeral || 0;
+          }
+        }
+      } catch (e) {
+        console.log('[LootSplit] Erro ao buscar saldo da guilda:', e.message);
+        // Fallback: buscar do cache global se disponível
+        const guildData = global.guildConfig?.get(guild.id);
+        if (guildData?.saldoGuilda) {
+          saldoGuilda = guildData.saldoGuilda;
+        }
+      }
+
+      // Buscar estatísticas de eventos arquivados
+      let eventosArquivados = 0;
+      try {
+        const history = await Database.getEventHistory?.(guild.id) || [];
+        eventosArquivados = history.length;
+      } catch (e) {
+        console.log('[LootSplit] Erro ao buscar histórico:', e.message);
+      }
+
+      // Buscar mensagem existente do painel
+      const messages = await canalFinanceiro.messages.fetch({ limit: 50 });
+      const painelSaldo = messages.find(m => 
+        m.author.bot && 
+        m.embeds.length > 0 && 
+        m.embeds[0].title?.includes('SALDO DA GUILDA')
+      );
+
+      const embed = new EmbedBuilder()
+        .setTitle('💰 SALDO DA GUILDA')
+        .setDescription(
+          `**Caixa da Guilda:** \`${saldoGuilda.toLocaleString()}\` pratas\n\n` +
+          `📊 **Estatísticas:**\n` +
+          `• Eventos Arquivados: \`${eventosArquivados}\`\n` +
+          `• Total em Taxas: \`${saldoGuilda.toLocaleString()}\`\n` +
+          `• Última Atualização: <t:${Math.floor(Date.now() / 1000)}:R>`
+        )
+        .setColor(0x2ECC71)
+        .setTimestamp();
+
+      if (painelSaldo) {
+        // Atualizar mensagem existente
+        await painelSaldo.edit({ embeds: [embed] });
+        console.log('[LootSplit] Painel de saldo atualizado');
+      } else {
+        // Criar nova mensagem se não existir
+        await canalFinanceiro.send({ embeds: [embed] });
+        console.log('[LootSplit] Novo painel de saldo criado');
+      }
+
+    } catch (error) {
+      console.error('[LootSplit] Erro ao atualizar painel de saldo:', error);
+    }
+  }
+
   // ==================== MODAIS ====================
 
   static createSimulationModal(eventId) {
@@ -897,6 +975,9 @@ class LootSplitHandler {
         }
       }
 
+      // ✅ ATUALIZAR PAINEL DE SALDO APÓS APROVAÇÃO
+      await this.updateGuildBalancePanel(interaction.guild);
+
       simulation.status = 'pago';
       simulation.aprovadoPor = interaction.user.id;
       simulation.aprovadoEm = Date.now();
@@ -932,13 +1013,11 @@ class LootSplitHandler {
         });
       }
 
-      // ✅ Atualizar painel de saldo
+      // ✅ Atualizar painel de saldo novamente (garantia)
       try {
-        const BalancePanelHandler = require('./balancePanelHandler');
-        const stats = await Database.getGuildDetailedStats(guildId);
-        console.log(`[LootSplit] Painel atualizado - Saldo Geral: ${stats.saldoGeral}, Taxas: ${stats.arrecadacaoTaxas}`);
+        await this.updateGuildBalancePanel(interaction.guild);
       } catch (panelError) {
-        console.log(`[LootSplit] Não foi possível atualizar painel:`, panelError.message);
+        console.log(`[LootSplit] Erro na segunda atualização do painel:`, panelError.message);
       }
 
       const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
@@ -1083,6 +1162,9 @@ class LootSplitHandler {
       } catch (e) {
         console.error('[LootSplit] Error auto-checking XP events:', e);
       }
+
+      // ✅ ATUALIZAR PAINEL DE SALDO APÓS ARQUIVAMENTO
+      await this.updateGuildBalancePanel(interaction.guild);
 
       // Criar embed de confirmação do arquivamento com info de XP
       const embedArquivamento = new EmbedBuilder()
