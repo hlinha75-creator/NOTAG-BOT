@@ -62,7 +62,7 @@ class RaidAvalonHandler {
       const embed = new EmbedBuilder()
         .setTitle('🏰 Configurar Classes - Raid Avalon')
         .setDescription(
-          `**${raidData.nome}**\n\n` +
+          `\*\*${raidData.nome}\*\*\n\n` +
           `Configure os limites de participantes por classe:\n` +
           `• Deixe em branco ou 0 para não ter limite\n` +
           `• O limite total é: ${raidData.limiteTotal || 'Sem limite'}\n\n` +
@@ -148,7 +148,7 @@ class RaidAvalonHandler {
       description += `${data.nome}: ${limiteText}\n`;
     }
 
-    description += `\n👥 **Limite Total:** ${raidData.limiteTotal || 'Sem limite'}`;
+    description += `\n👥 \*\*Limite Total:\*\* ${raidData.limiteTotal || 'Sem limite'}`;
 
     embed.setDescription(description);
     return embed;
@@ -301,7 +301,7 @@ class RaidAvalonHandler {
 
       // Completar dados da raid
       raidData.id = eventId;
-      raidData.guildId = guild.id; // ✅ CORREÇÃO: Adicionado guildId
+      raidData.guildId = guild.id;
       raidData.criadorId = interaction.user.id;
       raidData.criadorTag = interaction.user.tag;
       raidData.canalVozId = canalVoz.id;
@@ -353,7 +353,7 @@ class RaidAvalonHandler {
       global.raidTemp.delete(interaction.user.id);
 
       await interaction.editReply({
-        content: `✅ **Raid Avalon criada com sucesso!**\n\n🏰 **${raidData.nome}**\n🕐 ${raidData.horario}\n🔊 Canal: <#${canalVoz.id}>`
+        content: `✅ \*\*Raid Avalon criada com sucesso!\*\*\n\n🏰 \*\*${raidData.nome}\*\*\n🕐 ${raidData.horario}\n🔊 Canal: <#${canalVoz.id}>`
       });
 
       console.log(`🏰 Raid Avalon criada: ${raidData.nome} por ${interaction.user.tag}`);
@@ -409,7 +409,7 @@ class RaidAvalonHandler {
     for (const [key, data] of Object.entries(raidData.classes || {})) {
       const total = data.participantes?.length || 0;
       const limite = data.limite > 0 ? `/${data.limite}` : '';
-      classesText += `${classEmojis[key]} **${key.toUpperCase()}**: ${total}${limite}\n`;
+      classesText += `${classEmojis[key]} \*\*${key.toUpperCase()}\*\*: ${total}${limite}\n`;
 
       if (data.participantes && data.participantes.length > 0) {
         data.participantes.forEach(p => {
@@ -423,11 +423,11 @@ class RaidAvalonHandler {
       .setTitle(`${statusEmojis[raidData.status] || '⏳'} 🏰 RAID AVALON ┃ ${raidData.nome}`)
       .setDescription(
         `\\> ${raidData.descricao}\n\n` +
-        `**👤 Criador:** <@${raidData.criadorId}>\n` +
-        `**🕐 Horário:** \`${raidData.horario}\`\n` +
-        `**📊 Status:** ${raidData.status === 'aguardando' ? 'Aguardando' : 'Em Andamento'}\n` +
-        `**🔊 Canal:** <#${raidData.canalVozId}>\n` +
-        `**👥 Total:** ${this.getTotalParticipants(raidData)}/${raidData.limiteTotal || '∞'}`
+        `\*\*👤 Criador:\*\* <@${raidData.criadorId}>\n` +
+        `\*\*🕐 Horário:\*\* \\`${raidData.horario}\\`\n` +
+        `\*\*📊 Status:\*\* ${raidData.status === 'aguardando' ? 'Aguardando' : 'Em Andamento'}\n` +
+        `\*\*🔊 Canal:\*\* <#${raidData.canalVozId}>\n` +
+        `\*\*👥 Total:\*\* ${this.getTotalParticipants(raidData)}/${raidData.limiteTotal || '∞'}`
       )
       .setColor(0x9B59B6)
       .addFields({
@@ -546,26 +546,16 @@ class RaidAvalonHandler {
         });
       }
 
-      // ✅ CORREÇÃO: Verificar se já está participando em ALGUMA classe e remover antes
-      let classeAnterior = null;
-      let participacaoAnterior = null;
-
+      // Verificar se já está participando
       for (const [key, data] of Object.entries(raidData.classes || {})) {
-        const index = data.participantes?.findIndex(p => p.userId === interaction.user.id);
-        if (index !== -1 && index !== undefined) {
-          // Encontrou em outra classe - remover da classe anterior
-          classeAnterior = key;
-          participacaoAnterior = data.participantes[index];
-          data.participantes.splice(index, 1);
-          console.log(`[RaidAvalon] Usuário ${interaction.user.id} removido da classe ${key} para trocar para ${classKey}`);
-          break; // Só pode estar em uma classe, então para aqui
+        const jaParticipa = data.participantes?.find(p => p.userId === interaction.user.id);
+        if (jaParticipa) {
+          return interaction.reply({
+            content: `❌ Você já está participando como ${key.toUpperCase()} com ${jaParticipa.arma}!`,
+            ephemeral: true
+          });
         }
       }
-
-      // Se estava em outra classe, informar na mensagem
-      const mensagemTroca = classeAnterior 
-        ? `🔄 Você estava como ${classeAnterior.toUpperCase()} e agora vai trocar para ${classKey.toUpperCase()}.\n\n` 
-        : '';
 
       const armas = this.getArmasPorClasse(classKey);
 
@@ -585,7 +575,7 @@ class RaidAvalonHandler {
       const row = new ActionRowBuilder().addComponents(selectMenu);
 
       await interaction.reply({
-        content: `${mensagemTroca}🎮 **Escolha sua arma para ${classKey.toUpperCase()}:**`,
+        content: `🎮 \*\*Escolha sua arma para ${classKey.toUpperCase()}:\*\*`,
         components: [row],
         ephemeral: true
       });
@@ -615,55 +605,22 @@ class RaidAvalonHandler {
       const armaNome = this.getArmaNomeByKey(weaponKey);
       const member = interaction.member;
 
-      // ✅ CORREÇÃO: Remover de qualquer outra classe antes de adicionar na nova
-      for (const [key, data] of Object.entries(raidData.classes || {})) {
-        if (key !== classKey) { // Não verifica a classe atual (onde vai entrar)
-          const index = data.participantes?.findIndex(p => p.userId === member.id);
-          if (index !== -1 && index !== undefined) {
-            data.participantes.splice(index, 1);
-            console.log(`[RaidAvalon] Removido ${member.id} da classe ${key} ao entrar em ${classKey}`);
-          }
-        }
-      }
-
-      // Adicionar participante na nova classe
+      // Adicionar participante
       if (!raidData.classes[classKey].participantes) {
         raidData.classes[classKey].participantes = [];
       }
 
-      // Verificar se já existe na classe atual (evita duplicados)
-      const jaExiste = raidData.classes[classKey].participantes.findIndex(p => p.userId === member.id);
-      if (jaExiste !== -1) {
-        // Atualizar dados se já existir
-        raidData.classes[classKey].participantes[jaExiste] = {
-          userId: member.id,
-          nick: member.nickname || member.user.username,
-          arma: armaNome,
-          classe: classKey,
-          joinedAt: Date.now()
-        };
-      } else {
-        // Adicionar novo
-        raidData.classes[classKey].participantes.push({
-          userId: member.id,
-          nick: member.nickname || member.user.username,
-          arma: armaNome,
-          classe: classKey,
-          joinedAt: Date.now()
-        });
-      }
+      raidData.classes[classKey].participantes.push({
+        userId: member.id,
+        nick: member.nickname || member.user.username,
+        arma: armaNome,
+        classe: classKey,
+        joinedAt: Date.now()
+      });
 
       // Atualizar também no activeEvents para compatibilidade
       const eventData = global.activeEvents.get(raidId);
       if (eventData) {
-        // Remover de todas as entradas anteriores no mapa
-        for (const [userId, data] of eventData.participantes) {
-          if (userId === member.id) {
-            eventData.participantes.delete(userId);
-          }
-        }
-
-        // Adicionar na nova posição
         eventData.participantes.set(member.id, {
           nick: member.nickname || member.user.username,
           userId: member.id,
@@ -684,9 +641,9 @@ class RaidAvalonHandler {
 
       try {
         await interaction.reply({
-          content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
-            `⚔️ **Arma:** ${armaNome}\n` +
-            `📋 **Set recomendado:**`,
+          content: `✅ \*\*Você entrou na raid como ${classKey.toUpperCase()}!\*\*\n\n` +
+            `⚔️ \*\*Arma:\*\* ${armaNome}\n` +
+            `📋 \*\*Set recomendado:\*\*`,
           files: [armaImagePath, setSkipPath],
           ephemeral: true
         });
@@ -694,18 +651,18 @@ class RaidAvalonHandler {
         // Tentar enviar só o set se a imagem da arma não existir
         try {
           await interaction.reply({
-            content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
-              `⚔️ **Arma:** ${armaNome}\n` +
-              `📋 **Set recomendado:**`,
+            content: `✅ \*\*Você entrou na raid como ${classKey.toUpperCase()}!\*\*\n\n` +
+              `⚔️ \*\*Arma:\*\* ${armaNome}\n` +
+              `📋 \*\*Set recomendado:\*\*`,
             files: [setSkipPath],
             ephemeral: true
           });
         } catch (setError) {
           // Se nem o set existir, envia sem imagens
           await interaction.reply({
-            content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
-              `⚔️ **Arma:** ${armaNome}\n\n` +
-              `⚠️ *Imagens do set não encontradas.*`,
+            content: `✅ \*\*Você entrou na raid como ${classKey.toUpperCase()}!\*\*\n\n` +
+              `⚔️ \*\*Arma:\*\* ${armaNome}\n\n` +
+              `⚠️ \*Imagens do set não encontradas.\*`,
             ephemeral: true
           });
         }
@@ -793,16 +750,19 @@ class RaidAvalonHandler {
    */
   static async handleIniciar(interaction, raidId) {
     try {
+      // ✅ CORREÇÃO: Adicionado deferReply no início para evitar timeout
+      await interaction.deferReply({ ephemeral: true });
+
       const raidData = global.activeRaids?.get(raidId);
       if (!raidData) {
-        return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
+        return interaction.editReply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
       const isCriador = interaction.user.id === raidData.criadorId;
       const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
 
       if (!isCriador && !isStaff) {
-        return interaction.reply({
+        return interaction.editReply({
           content: '❌ Apenas o criador ou staff pode iniciar!',
           ephemeral: true
         });
@@ -856,29 +816,38 @@ class RaidAvalonHandler {
 
       await this.updateRaidPanel(interaction, raidData);
 
-      await interaction.reply({
-        content: '🚀 **Raid iniciada!** Todos os participantes foram movidos para o canal de voz!',
+      // ✅ CORREÇÃO: Usar editReply em vez de reply
+      await interaction.editReply({
+        content: '🚀 \*\*Raid iniciada!\*\* Todos os participantes foram movidos para o canal de voz!',
         ephemeral: true
       });
 
     } catch (error) {
       console.error('[RaidAvalon] Error starting raid:', error);
-      await interaction.reply({ content: '❌ Erro ao iniciar raid.', ephemeral: true });
+      // ✅ CORREÇÃO: Verificar se já foi deferido antes de responder
+      if (interaction.deferred) {
+        await interaction.editReply({ content: '❌ Erro ao iniciar raid.', ephemeral: true });
+      } else {
+        await interaction.reply({ content: '❌ Erro ao iniciar raid.', ephemeral: true });
+      }
     }
   }
 
   static async handleFinalizar(interaction, raidId) {
     try {
+      // ✅ CORREÇÃO: Adicionado deferReply no início para evitar timeout
+      await interaction.deferReply({ ephemeral: true });
+
       const raidData = global.activeRaids?.get(raidId);
       if (!raidData) {
-        return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
+        return interaction.editReply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
       const isCriador = interaction.user.id === raidData.criadorId;
       const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
 
       if (!isCriador && !isStaff) {
-        return interaction.reply({
+        return interaction.editReply({
           content: '❌ Apenas o criador ou staff pode finalizar!',
           ephemeral: true
         });
@@ -916,7 +885,13 @@ class RaidAvalonHandler {
             }
           }
         }
-        await canalVoz.delete('Raid finalizada');
+
+        // ✅ CORREÇÃO: Try-catch ao deletar canal para evitar crash se canal já foi deletado
+        try {
+          await canalVoz.delete('Raid finalizada');
+        } catch (e) {
+          console.log(`[RaidAvalon] Could not delete voice channel: ${e.message}`);
+        }
       }
 
       // Criar resumo em canal de eventos encerrados com botão de lootsplit
@@ -950,7 +925,7 @@ class RaidAvalonHandler {
       // ✅ CORREÇÃO: Garantir guildId ao salvar em finishedEvents
       global.finishedEvents.set(raidId, {
         ...raidData,
-        guildId: raidData.guildId || interaction.guild.id, // Garantir guildId
+        guildId: raidData.guildId || interaction.guild.id,
         participantes: participantesMap,
         finalizadoEm: Date.now()
       });
@@ -958,29 +933,38 @@ class RaidAvalonHandler {
       global.activeRaids.delete(raidId);
       global.activeEvents.delete(raidId);
 
-      await interaction.reply({
-        content: '✅ **Raid finalizada com sucesso!**\n💰 Use o botão "Simular Evento" no canal de eventos encerrados para calcular o loot.',
+      // ✅ CORREÇÃO: Usar editReply em vez de reply
+      await interaction.editReply({
+        content: '✅ \*\*Raid finalizada com sucesso!\*\*\n💰 Use o botão "Simular Evento" no canal de eventos encerrados para calcular o loot.',
         ephemeral: true
       });
 
     } catch (error) {
       console.error('[RaidAvalon] Error finishing raid:', error);
-      await interaction.reply({ content: '❌ Erro ao finalizar raid.', ephemeral: true });
+      // ✅ CORREÇÃO: Verificar se já foi deferido antes de responder
+      if (interaction.deferred) {
+        await interaction.editReply({ content: '❌ Erro ao finalizar raid.', ephemeral: true });
+      } else {
+        await interaction.reply({ content: '❌ Erro ao finalizar raid.', ephemeral: true });
+      }
     }
   }
 
   static async handleCancelar(interaction, raidId) {
     try {
+      // ✅ CORREÇÃO: Adicionado deferReply para consistência e segurança
+      await interaction.deferReply({ ephemeral: true });
+
       const raidData = global.activeRaids?.get(raidId);
       if (!raidData) {
-        return interaction.reply({ content: '❌ Raid não encontrada!', ephemeral: true });
+        return interaction.editReply({ content: '❌ Raid não encontrada!', ephemeral: true });
       }
 
       const isCriador = interaction.user.id === raidData.criadorId;
       const isStaff = interaction.member.roles.cache.some(r => ['ADM', 'Staff'].includes(r.name));
 
       if (!isCriador && !isStaff) {
-        return interaction.reply({
+        return interaction.editReply({
           content: '❌ Apenas o criador ou staff pode cancelar!',
           ephemeral: true
         });
@@ -988,7 +972,11 @@ class RaidAvalonHandler {
 
       const canalVoz = interaction.guild.channels.cache.get(raidData.canalVozId);
       if (canalVoz) {
-        await canalVoz.delete('Raid cancelada');
+        try {
+          await canalVoz.delete('Raid cancelada');
+        } catch (e) {
+          console.log(`[RaidAvalon] Could not delete channel: ${e.message}`);
+        }
       }
 
       const canalParticipar = interaction.guild.channels.cache.get(raidData.canalTextoId);
@@ -1000,14 +988,20 @@ class RaidAvalonHandler {
       global.activeRaids.delete(raidId);
       global.activeEvents.delete(raidId);
 
-      await interaction.reply({
-        content: '🗑️ **Raid cancelada!**',
+      // ✅ CORREÇÃO: Usar editReply
+      await interaction.editReply({
+        content: '🗑️ \*\*Raid cancelada!\*\*',
         ephemeral: true
       });
 
     } catch (error) {
       console.error('[RaidAvalon] Error canceling raid:', error);
-      await interaction.reply({ content: '❌ Erro ao cancelar raid.', ephemeral: true });
+      // ✅ CORREÇÃO: Verificar se já foi deferido
+      if (interaction.deferred) {
+        await interaction.editReply({ content: '❌ Erro ao cancelar raid.', ephemeral: true });
+      } else {
+        await interaction.reply({ content: '❌ Erro ao cancelar raid.', ephemeral: true });
+      }
     }
   }
 
@@ -1035,7 +1029,7 @@ class RaidAvalonHandler {
       let resumo = '';
       let totalParticipantes = 0;
       for (const [key, data] of Object.entries(raidData.classes || {})) {
-        resumo += `**${key.toUpperCase()}** (${data.participantes?.length || 0}):\n`;
+        resumo += `\*\*${key.toUpperCase()}\*\* (${data.participantes?.length || 0}):\n`;
         totalParticipantes += data.participantes?.length || 0;
         if (data.participantes) {
           data.participantes.forEach(p => {
@@ -1048,12 +1042,12 @@ class RaidAvalonHandler {
       const embed = new EmbedBuilder()
         .setTitle(`✅ RAID AVALON FINALIZADA ┃ ${raidData.nome}`)
         .setDescription(
-          `**Criador:** <@${raidData.criadorId}>\n` +
-          `**Horário:** ${raidData.horario}\n` +
-          `**Duração:** ${tempoTotalMin} minutos\n` +
-          `**Total:** ${totalParticipantes} participantes\n` +
-          `**Taxa Guilda:** ${taxaGuilda}%\n\n` +
-          `**Participantes por Classe:**\n${resumo}`
+          `\*\*Criador:\*\* <@${raidData.criadorId}>\n` +
+          `\*\*Horário:\*\* ${raidData.horario}\n` +
+          `\*\*Duração:\*\* ${tempoTotalMin} minutos\n` +
+          `\*\*Total:\*\* ${totalParticipantes} participantes\n` +
+          `\*\*Taxa Guilda:\*\* ${taxaGuilda}%\n\n` +
+          `\*\*Participantes por Classe:\*\*\n${resumo}`
         )
         .setColor(0x2ECC71)
         .setTimestamp();
