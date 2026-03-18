@@ -560,10 +560,95 @@ client.on(Events.InteractionCreate, async interaction => {
  }
 
  if (customId === 'killboard_test_kill' || customId === 'killboard_test_death') {
- await interaction.reply({
- content: '📤 Envio de teste em desenvolvimento...',
- ephemeral: true
- });
+ await interaction.deferReply({ ephemeral: true });
+
+ const testKbConfig = global.guildConfig?.get(interaction.guild.id)?.killboard;
+ if (!testKbConfig) {
+ await interaction.editReply({ content: '❌ Killboard não configurado! Use `/killboard setup` e `/killboard config` primeiro.' });
+ return;
+ }
+
+ const isKill = customId === 'killboard_test_kill';
+
+ const mockKbEvent = {
+ EventId: 999999999,
+ TimeStamp: new Date().toISOString(),
+ Location: 'Zona de Teste',
+ TotalVictimKillFame: 125000,
+ Killer: {
+ Name: isKill ? 'GuerreiroNOTAG' : 'InimigoTest',
+ GuildId: isKill ? (testKbConfig.guildIdAlbion || 'guild-test') : 'guild-enemy',
+ GuildName: isKill ? 'NOTAG' : 'Inimigos',
+ AllianceName: isKill ? 'NOTAG Alliance' : null,
+ AverageItemPower: isKill ? 1450 : 1200,
+ Equipment: {
+ MainHand: { Type: isKill ? 'T8_MAIN_SWORD@3' : 'T7_MAIN_ARCANESTAFF@1', Quality: isKill ? 3 : 2 },
+ Head: { Type: isKill ? 'T8_HEAD_PLATE_SET3@2' : 'T7_HEAD_CLOTH_SET1', Quality: isKill ? 2 : 1 },
+ Armor: { Type: isKill ? 'T8_ARMOR_PLATE_SET3@2' : 'T7_ARMOR_CLOTH_SET1', Quality: isKill ? 2 : 1 },
+ Shoes: { Type: isKill ? 'T8_SHOES_PLATE_SET3@1' : 'T7_SHOES_CLOTH_SET1', Quality: isKill ? 2 : 1 },
+ Cape: { Type: 'T8_CAPE', Quality: 1 },
+ Mount: { Type: 'T8_MOUNT_HORSE', Quality: 1 }
+ }
+ },
+ Victim: {
+ Name: isKill ? 'InimigoTest' : 'GuerreiroNOTAG',
+ GuildId: isKill ? 'guild-enemy' : (testKbConfig.guildIdAlbion || 'guild-test'),
+ GuildName: isKill ? 'Inimigos' : 'NOTAG',
+ AllianceName: isKill ? null : 'NOTAG Alliance',
+ AverageItemPower: isKill ? 1200 : 1450,
+ Equipment: {
+ MainHand: { Type: isKill ? 'T7_MAIN_ARCANESTAFF@1' : 'T8_MAIN_SWORD@3', Quality: isKill ? 2 : 3 },
+ Head: { Type: isKill ? 'T7_HEAD_CLOTH_SET1' : 'T8_HEAD_PLATE_SET3@2', Quality: isKill ? 1 : 2 },
+ Armor: { Type: isKill ? 'T7_ARMOR_CLOTH_SET1' : 'T8_ARMOR_PLATE_SET3@2', Quality: isKill ? 1 : 2 },
+ Shoes: { Type: isKill ? 'T7_SHOES_CLOTH_SET1' : 'T8_SHOES_PLATE_SET3@1', Quality: isKill ? 1 : 2 },
+ Cape: { Type: 'T6_CAPE', Quality: 1 },
+ Mount: { Type: 'T6_MOUNT_ARMORED_HORSE', Quality: 1 }
+ },
+ Inventory: [
+ { Type: 'T8_ROCK', Count: 500 },
+ { Type: 'T7_PLANKS', Count: 200 }
+ ]
+ },
+ Participants: [{ Id: '1' }, { Id: '2' }, { Id: '3' }],
+ GroupMembers: []
+ };
+
+ try {
+ if (isKill) {
+ const killChannelId = testKbConfig.killChannelId;
+ if (!killChannelId) {
+ await interaction.editReply({ content: '❌ Canal de kills não configurado. Use `/killboard setup` primeiro.' });
+ return;
+ }
+ const killChannel = interaction.guild.channels.cache.get(killChannelId);
+ if (!killChannel) {
+ await interaction.editReply({ content: `❌ Canal de kills não encontrado (ID: ${killChannelId}).` });
+ return;
+ }
+ const killEmbed = await KillboardHandler.createKillEmbed(mockKbEvent, testKbConfig);
+ const components = KillboardHandler.createEventComponents(mockKbEvent);
+ await killChannel.send({ embeds: [killEmbed], components: [components] });
+ await interaction.editReply({ content: `✅ Embed de **kill** de teste enviado em <#${killChannelId}>!` });
+ } else {
+ const deathChannelId = testKbConfig.deathChannelId;
+ if (!deathChannelId) {
+ await interaction.editReply({ content: '❌ Canal de deaths não configurado. Use `/killboard setup` primeiro.' });
+ return;
+ }
+ const deathChannel = interaction.guild.channels.cache.get(deathChannelId);
+ if (!deathChannel) {
+ await interaction.editReply({ content: `❌ Canal de deaths não encontrado (ID: ${deathChannelId}).` });
+ return;
+ }
+ const deathEmbed = await KillboardHandler.createDeathEmbed(mockKbEvent, testKbConfig);
+ const components = KillboardHandler.createEventComponents(mockKbEvent);
+ await deathChannel.send({ embeds: [deathEmbed], components: [components] });
+ await interaction.editReply({ content: `✅ Embed de **death** de teste enviado em <#${deathChannelId}>!` });
+ }
+ } catch (kbTestErr) {
+ console.error('[Killboard Test Button] Erro:', kbTestErr);
+ await interaction.editReply({ content: `❌ Erro ao enviar teste: ${kbTestErr.message}` });
+ }
  return;
  }
 
