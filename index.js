@@ -217,6 +217,7 @@ const RaidAvalonHandler = require('./handlers/raidAvalonHandler');
 const KillboardHandler = require('./handlers/killboardHandler');
 const MarketHandler = require('./handlers/marketHandler');
 const MarketApi = require('./handlers/albionMarketApi');
+const BalancePanelHandler = require('./handlers/balancePanelHandler');
 
 // ==================== IMPORTAR COMANDOS ====================
 const instalarCommand = require('./commands/instalar');
@@ -899,6 +900,22 @@ client.on(Events.InteractionCreate, async interaction => {
 
  if (customId === 'btn_quitar_emprestimo') {
  await ConsultarSaldoHandler.handleQuitarEmprestimo(interaction);
+ return;
+ }
+
+ // SALDO GUILDA
+ if (customId === 'btn_saldo_atualizar') {
+ await BalancePanelHandler.handleAtualizar(interaction);
+ return;
+ }
+
+ if (customId === 'btn_saldo_detalhes') {
+ await BalancePanelHandler.handleDetalhes(interaction);
+ return;
+ }
+
+ if (customId === 'btn_saldo_historico') {
+ await BalancePanelHandler.handleHistorico(interaction);
  return;
  }
 

@@ -262,6 +262,50 @@ class BalancePanelHandler {
     }
   }
 
+  static async handleHistorico(interaction) {
+    try {
+      await interaction.deferReply({ ephemeral: true });
+
+      const transacoes = await Database.db.allAsync(`
+        SELECT tipo, valor, descricao, created_at
+        FROM transactions
+        ORDER BY created_at DESC
+        LIMIT 15
+      `) || [];
+
+      let description = '**📜 ÚLTIMAS 15 TRANSAÇÕES DA GUILDA**\n\n';
+
+      if (transacoes.length === 0) {
+        description += '*Nenhuma transação encontrada.*';
+      } else {
+        transacoes.forEach((t) => {
+          const data = new Date(t.created_at).toLocaleString('pt-BR');
+          const sinal = t.tipo === 'credito' ? '➕' : '➖';
+          const valor = (t.valor || 0).toLocaleString('pt-BR');
+          const descricao = t.descricao || t.tipo;
+          description += `${sinal} \`${valor}\` — ${descricao}\n*${data}*\n\n`;
+        });
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('📜 Histórico Financeiro da Guilda')
+        .setDescription(description)
+        .setColor(0x95A5A6)
+        .setFooter({ text: 'NOTAG Bot • Sistema Financeiro' })
+        .setTimestamp();
+
+      await interaction.editReply({ embeds: [embed] });
+
+    } catch (error) {
+      console.error('[BalancePanel] Erro ao mostrar histórico:', error);
+      try {
+        await interaction.editReply({ content: '❌ Erro ao carregar histórico.' });
+      } catch (e) {
+        await interaction.followUp({ content: '❌ Erro ao carregar histórico.', ephemeral: true });
+      }
+    }
+  }
+
   static formatNumber(num) {
     if (num === undefined || num === null || isNaN(num)) return '0';
     return num.toLocaleString('pt-BR');
