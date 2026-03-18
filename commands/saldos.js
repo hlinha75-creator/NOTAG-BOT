@@ -27,25 +27,25 @@ module.exports = {
 
  // Buscar informações dos membros do Discord
  const guild = interaction.guild;
- const members = await guild.members.fetch();
 
- // Combinar dados do banco com dados do Discord
+ // Forçar fetch de todos os membros do servidor
+ await guild.members.fetch();
+
+ // Combinar dados do banco com dados do Discord (inclui todos, mesmo quem saiu da guilda)
  const membrosCompletos = [];
 
  for (const user of allUsers) {
- const member = members.get(user.user_id);
- if (member) {
+ const member = guild.members.cache.get(user.user_id);
  membrosCompletos.push({
  userId: user.user_id,
- displayName: member.displayName || member.user.username,
+ displayName: member?.displayName || member?.user?.username || `ID:${user.user_id}`,
  saldo: user.saldo || 0,
  level: user.level || 1,
  eventos: user.eventos_participados || 0,
  recebido: user.total_recebido || 0,
  sacado: user.total_sacado || 0,
- avatar: member.user.displayAvatarURL({ dynamic: true })
+ avatar: member?.user?.displayAvatarURL({ dynamic: true }) || null
  });
- }
  }
 
  // Calcular totais
