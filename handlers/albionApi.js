@@ -210,43 +210,111 @@ class AlbionAPI {
  throw lastError || new Error('Todas as tentativas falharam');
  }
 
- async searchPlayer(playerName, server = 'europe') {
- console.log(`\n🔍 Buscando: "${playerName}" [${server}]`);
+ /**
+  * Faz uma requisição com timeout customizado (para buscas rápidas)
+  */
+ makeRequestFast(hostname, path, timeout = 8000) {
+ return new Promise((resolve, reject) => {
+ const options = {
+ hostname,
+ path,
+ method: 'GET',
+ headers: {
+ 'Accept': 'application/json',
+ 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+ },
+ timeout
+ };
 
- const cacheKey = playerName.toLowerCase();
- if (!this.checkCircuitBreaker()) {
- const cached = this.getFromCache(cacheKey);
- if (cached) return cached;
- return null;
+ const req = https.request(options, (res) => {
+ let data = '';
+ res.on('data', chunk => data += chunk);
+ res.on('end', () => {
+ try {
+ if (res.statusCode === 200) {
+ resolve(JSON.parse(data));
+ } else {
+ reject(new Error(`HTTP ${res.statusCode}`));
+ }
+ } catch (e) {
+ reject(new Error(`Parse error: ${e.message}`));
+ }
+ });
+ });
+
+ req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+ req.on('error', e => reject(new Error(`Network: ${e.message}`)));
+ req.end();
+ });
  }
 
- const cached = this.getFromCache(cacheKey);
- if (cached) return cached;
+ /**
+  * Busca jogador em TODOS os 3 servidores em paralelo.
+  * Retorna o primeiro resultado válido encontrado.
+  * Evita o problema de esperar timeout de um servidor antes de tentar outro.
+  */
+ async searchPlayerParallel(playerName) {
+ const encodedName = encodeURIComponent(playerName);
+ const path = `/api/gameinfo/search?q=${encodedName}`;
 
- if (this.getFromNegativeCache(cacheKey)) {
- console.log(`⛔ Cache negativo: "${playerName}"`);
+ console.log(`🔍 [AlbionAPI] Buscando "${playerName}" em paralelo nos 3 servidores...`);
+
+ // Lança busca simultânea nos 3 servidores — retorna o primeiro que encontrar
+ const serverPromises = Object.entries(this.endpoints).map(([serverName, hostname]) =>
+ this.makeRequestFast(hostname, path, 8000)
+ .then(data => {
+ const playerData = this.processPlayerData(data, playerName);
+ if (!playerData) throw new Error(`Não encontrado em ${serverName}`);
+ console.log(`✅ [AlbionAPI] "${playerName}" encontrado em ${serverName}`);
+ return playerData;
+ })
+ .catch(err => {
+ // Silencia erros individuais — Promise.any ignora rejeições
+ console.log(`⚠️ [AlbionAPI] ${serverName}: ${err.message}`);
+ throw err;
+ })
+ );
+
+ try {
+ // Promise.any: resolve com o PRIMEIRO que tiver sucesso
+ // Se TODOS falharem → AggregateError → catch → null
+ return await Promise.any(serverPromises);
+ } catch {
+ console.log(`❌ [AlbionAPI] "${playerName}" não encontrado em nenhum servidor`);
  return null;
+ }
+ }
+
+ async searchPlayer(playerName, server = 'europe') {
+ console.log(`\n🔍 Buscando: "${playerName}" [hint: ${server}]`);
+
+ const cacheKey = playerName.toLowerCase();
+
+ // Cache positivo: se já encontramos esse jogador recentemente, usa cache
+ const cached = this.getFromCache(cacheKey);
+ if (cached) {
+ console.log(`📦 [AlbionAPI] Cache hit para "${playerName}"`);
+ return cached;
  }
 
  try {
- const encodedName = encodeURIComponent(playerName);
- const path = `/api/gameinfo/search?q=${encodedName}`;
- const data = await this.makeRequestWithRetry(path, server);
+ // Busca em paralelo nos 3 servidores (sem circuit breaker global)
+ const playerData = await this.searchPlayerParallel(playerName);
 
- const playerData = this.processPlayerData(data, playerName);
  if (playerData) {
- console.log(`✅ Encontrado: ${playerData.name}`);
+ // Salva no cache positivo (reutiliza setCache existente)
  this.setCache(cacheKey, playerData);
  this.recordSuccess();
  return playerData;
- } else {
- console.log(`❌ Não encontrado`);
- this.setNegativeCache(cacheKey);
- return null;
  }
+
+ // Jogador genuinamente não encontrado em nenhum servidor
+ // NÃO salva em cache negativo: próxima busca tenta de novo
+ // (evita falsos negativos por falha temporária de rede)
+ return null;
+
  } catch (error) {
- console.error(`🔴 [AlbionAPI] Falha na busca:`, error.message);
- this.recordFailure();
+ console.error(`🔴 [AlbionAPI] Erro inesperado na busca:`, error.message || error);
  return null;
  }
  }

@@ -383,29 +383,56 @@ class RegistrationModal {
 
       const dados = registroData.dados;
 
-      // Definir cor e status baseado na verificação
+      // Definir cor e status baseado na verificação (usando apiStatus para precisão)
       let embedColor = 0x2ECC71; // Verde (validado)
       let footerText = `ID: ${registroData.id} | ✅ Verificado via API`;
       let apiField = {
         name: '✅ Validação API',
-        value: `Jogador encontrado!\nGuilda atual: ${registroData.albionData?.guildName || 'Sem guilda'}`,
+        value: `Jogador encontrado e guilda confirmada!\nGuilda real: **${registroData.albionData?.guildName || 'Sem guilda'}**`,
         inline: false
       };
 
-      if (registroData.apiError) {
+      const apiStatus = registroData.apiStatus;
+
+      if (registroData.apiError || apiStatus === 'API_UNAVAILABLE' || apiStatus === 'ERROR') {
         embedColor = 0xE74C3C; // Vermelho (erro API)
         footerText = `ID: ${registroData.id} | 🔴 API Indisponível`;
         apiField = {
-          name: '🔴 ATENÇÃO - API INDISPONÍVEL',
-          value: 'Não foi possível conectar à API do Albion. Verifique manualmente se o jogador existe antes de aprovar!',
+          name: '🔴 ATENÇÃO — API INDISPONÍVEL',
+          value: 'Não foi possível conectar à API do Albion. Verifique manualmente se o jogador existe antes de aprovar.',
           inline: false
         };
-      } else if (!registroData.apiVerified) {
-        embedColor = 0xF39C12; // Laranja (não verificado)
-        footerText = `ID: ${registroData.id} | ⚠️ NÃO verificado na API`;
+      } else if (apiStatus === 'GUILD_MISMATCH') {
+        // Nick encontrado, mas guilda não bate — avisa a staff com as duas informações
+        embedColor = 0xF39C12;
+        footerText = `ID: ${registroData.id} | ⚠️ Guilda divergente`;
         apiField = {
-          name: '⚠️ ATENÇÃO',
-          value: 'Este nick não foi encontrado na API do Albion Online.\nVerifique manualmente se o jogador existe antes de aprovar!',
+          name: '⚠️ Nick encontrado — Guilda divergente',
+          value: `Jogador **existe** na API do Albion, porém a guilda não confere:\n• **Informou:** ${dados.guilda}\n• **Guilda real:** ${registroData.albionData?.guildName || 'Sem guilda'}\n\nVerifique se a guilda informada é uma abreviação/alias antes de recusar.`,
+          inline: false
+        };
+      } else if (apiStatus === 'MISMATCH') {
+        embedColor = 0xF39C12;
+        footerText = `ID: ${registroData.id} | ⚠️ Guilda divergente`;
+        apiField = {
+          name: '⚠️ Nick encontrado — Guilda divergente',
+          value: `Jogador **existe** na API. Informou "Nenhuma guilda" mas está em: **${registroData.albionData?.guildName}**`,
+          inline: false
+        };
+      } else if (apiStatus === 'NO_GUILD') {
+        embedColor = 0xF39C12;
+        footerText = `ID: ${registroData.id} | ⚠️ Sem guilda no Albion`;
+        apiField = {
+          name: '⚠️ Nick encontrado — Sem guilda no Albion',
+          value: `Jogador **existe** na API, mas não está em nenhuma guilda atualmente.\nInformou a guilda: **${dados.guilda}**`,
+          inline: false
+        };
+      } else if (apiStatus === 'NOT_FOUND' || (!registroData.apiVerified && !registroData.apiError)) {
+        embedColor = 0xF39C12; // Laranja (não verificado)
+        footerText = `ID: ${registroData.id} | ⚠️ Nick não encontrado na API`;
+        apiField = {
+          name: '⚠️ ATENÇÃO — Nick não encontrado na API',
+          value: 'Este nick não foi localizado em nenhum dos servidores da API do Albion (EU/AM/ASI).\nPode ser erro de digitação, nick recente, ou API instável. Verifique manualmente.',
           inline: false
         };
       }
