@@ -104,15 +104,20 @@ module.exports = {
           const ativo = interaction.options.getBoolean('ativo');
           await interaction.deferReply({ ephemeral: true });
 
-          const config = global.guildConfig?.get(interaction.guild.id)?.killboard || {};
-          config.enabled = ativo;
+          if (!global.guildConfig) global.guildConfig = new Map();
 
-          if (!global.guildConfig.has(interaction.guild.id)) {
-            global.guildConfig.set(interaction.guild.id, {});
+          const config = global.guildConfig.get(interaction.guild.id)?.killboard;
+          if (!config) {
+            return interaction.editReply({ content: '❌ Killboard não configurado! Use `/killboard setup` primeiro.' });
           }
+
+          config.enabled = ativo;
           global.guildConfig.get(interaction.guild.id).killboard = config;
 
-          if (ativo) {
+          // Salvar em disco
+          KillboardHandler.saveConfig();
+
+          if (ativo && config.guildIdAlbion) {
             KillboardHandler.startPolling(interaction.guild.id, config);
           } else {
             KillboardHandler.stopPolling(interaction.guild.id);
@@ -150,12 +155,93 @@ module.exports = {
           const tipo = interaction.options.getString('tipo');
           await interaction.deferReply({ ephemeral: true });
 
-          // Aqui você pode implementar um evento de teste mockado
-          await interaction.editReply({
-            content: `📤 Enviando mensagem de teste (${tipo})...`
-          });
+          const testConfig = global.guildConfig?.get(interaction.guild.id)?.killboard;
+          if (!testConfig) {
+            return interaction.editReply({
+              content: '❌ Killboard não configurado! Use `/killboard setup` e `/killboard config` primeiro.'
+            });
+          }
 
-          // Implementar envio de embed de teste
+          // Evento mockado para teste
+          const mockEvent = {
+            EventId: 999999999,
+            TimeStamp: new Date().toISOString(),
+            Location: 'Zona de Teste',
+            TotalVictimKillFame: 125000,
+            Killer: {
+              Name: 'GuerreiroNOTAG',
+              GuildId: testConfig.guildIdAlbion || 'guild-test',
+              GuildName: 'NOTAG',
+              AllianceName: 'NOTAG Alliance',
+              AverageItemPower: 1450,
+              Equipment: {
+                MainHand: { Type: 'T8_MAIN_SWORD@3', Quality: 3 },
+                Head: { Type: 'T8_HEAD_PLATE_SET3@2', Quality: 2 },
+                Armor: { Type: 'T8_ARMOR_PLATE_SET3@2', Quality: 2 },
+                Shoes: { Type: 'T8_SHOES_PLATE_SET3@1', Quality: 2 },
+                Cape: { Type: 'T8_CAPE', Quality: 1 },
+                Mount: { Type: 'T8_MOUNT_HORSE', Quality: 1 }
+              }
+            },
+            Victim: {
+              Name: 'InimigoTest',
+              GuildId: 'guild-enemy',
+              GuildName: 'Inimigos',
+              AllianceName: null,
+              AverageItemPower: 1200,
+              Equipment: {
+                MainHand: { Type: 'T7_MAIN_ARCANESTAFF@1', Quality: 2 },
+                Head: { Type: 'T7_HEAD_CLOTH_SET1', Quality: 1 },
+                Armor: { Type: 'T7_ARMOR_CLOTH_SET1', Quality: 1 },
+                Shoes: { Type: 'T7_SHOES_CLOTH_SET1', Quality: 1 },
+                Cape: { Type: 'T6_CAPE', Quality: 1 },
+                Mount: { Type: 'T6_MOUNT_ARMORED_HORSE', Quality: 1 }
+              },
+              Inventory: [
+                { Type: 'T8_ROCK', Count: 500 },
+                { Type: 'T7_PLANKS', Count: 200 }
+              ]
+            },
+            Participants: [{ Id: '1' }, { Id: '2' }, { Id: '3' }],
+            GroupMembers: []
+          };
+
+          try {
+            if (tipo === 'kill') {
+              const killChannelId = testConfig.killChannelId;
+              if (!killChannelId) {
+                return interaction.editReply({ content: '❌ Canal de kills não configurado. Use `/killboard setup` primeiro.' });
+              }
+              const killChannel = interaction.guild.channels.cache.get(killChannelId);
+              if (!killChannel) {
+                return interaction.editReply({ content: `❌ Canal de kills não encontrado. ID salvo: ${killChannelId}` });
+              }
+              mockEvent.Killer.GuildId = testConfig.guildIdAlbion || 'guild-test';
+              const killEmbed = await KillboardHandler.createKillEmbed(mockEvent, testConfig);
+              const components = KillboardHandler.createEventComponents(mockEvent);
+              await killChannel.send({ embeds: [killEmbed], components: [components] });
+              await interaction.editReply({ content: `✅ Embed de kill de teste enviado em <#${killChannelId}>!` });
+            } else {
+              const deathChannelId = testConfig.deathChannelId;
+              if (!deathChannelId) {
+                return interaction.editReply({ content: '❌ Canal de deaths não configurado. Use `/killboard setup` primeiro.' });
+              }
+              const deathChannel = interaction.guild.channels.cache.get(deathChannelId);
+              if (!deathChannel) {
+                return interaction.editReply({ content: `❌ Canal de deaths não encontrado. ID salvo: ${deathChannelId}` });
+              }
+              mockEvent.Victim.GuildId = testConfig.guildIdAlbion || 'guild-test';
+              mockEvent.Victim.GuildName = 'NOTAG';
+              mockEvent.Killer.GuildId = 'guild-enemy';
+              const deathEmbed = await KillboardHandler.createDeathEmbed(mockEvent, testConfig);
+              const components = KillboardHandler.createEventComponents(mockEvent);
+              await deathChannel.send({ embeds: [deathEmbed], components: [components] });
+              await interaction.editReply({ content: `✅ Embed de death de teste enviado em <#${deathChannelId}>!` });
+            }
+          } catch (testError) {
+            console.error('[Killboard Test] Erro:', testError);
+            await interaction.editReply({ content: `❌ Erro ao enviar teste: ${testError.message}` });
+          }
           break;
       }
     } catch (error) {

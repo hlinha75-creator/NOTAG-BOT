@@ -68,6 +68,9 @@ class KillboardHandler {
  killboard: killboardConfig
  });
 
+ // Salvar configuração em disco imediatamente
+ this.saveConfig();
+
  // Iniciar polling se tiver guilda do Albion configurada
  if (killboardConfig.guildIdAlbion) {
  this.startPolling(guildId, killboardConfig);
@@ -136,14 +139,19 @@ class KillboardHandler {
  */
  async setGuildId(guildId, albionGuildId) {
  try {
- const config = global.guildConfig?.get(guildId)?.killboard || {};
+ // Garantir que guildConfig existe
+ if (!global.guildConfig) global.guildConfig = new Map();
+
+ const config = global.guildConfig.get(guildId)?.killboard || {};
  config.guildIdAlbion = albionGuildId;
 
  // Buscar dados da guilda para confirmar
  const guildData = await AlbionAPI.getGuildInfo(albionGuildId);
- if (guildData) {
- config.allianceId = guildData.AllianceId;
+ if (!guildData) {
+ throw new Error(`Guilda com ID "${albionGuildId}" não encontrada na API do Albion. Verifique o ID e tente novamente.`);
  }
+
+ config.allianceId = guildData.AllianceId || null;
 
  // Atualizar config
  const currentConfig = global.guildConfig.get(guildId) || {};
@@ -151,6 +159,9 @@ class KillboardHandler {
  ...currentConfig,
  killboard: config
  });
+
+ // Salvar config imediatamente em disco
+ this.saveConfig();
 
  // Reiniciar polling
  this.stopPolling(guildId);
@@ -160,6 +171,25 @@ class KillboardHandler {
  } catch (error) {
  console.error('[Killboard] Erro ao configurar guilda:', error);
  throw error;
+ }
+ }
+
+ /**
+ * Salva configurações do killboard em disco imediatamente
+ */
+ saveConfig() {
+ try {
+ const fs = require('fs');
+ if (!global.guildConfig) return;
+ const killboardConfigs = [];
+ for (const [gId, cfg] of global.guildConfig.entries()) {
+ if (cfg.killboard) killboardConfigs.push([gId, cfg.killboard]);
+ }
+ if (!fs.existsSync('./data')) fs.mkdirSync('./data', { recursive: true });
+ fs.writeFileSync('./data/killboard_config.json', JSON.stringify(killboardConfigs, null, 2));
+ console.log('[Killboard] Configuração salva em disco.');
+ } catch (err) {
+ console.error('[Killboard] Erro ao salvar config:', err);
  }
  }
 
@@ -271,7 +301,7 @@ class KillboardHandler {
  const result = await new Promise((resolve, reject) => {
  const options = {
  hostname: endpoint,
- path: `/api/gameinfo/events?guildId=${guildId}&limit=${limit}&offset=0`,
+ path: `/api/gameinfo/events/guildId/${guildId}?limit=${limit}&offset=0`,
  method: 'GET',
  headers: {
  'Accept': 'application/json',
@@ -408,7 +438,6 @@ class KillboardHandler {
  .setDescription(`**${killer.Name}** matou **${victim.Name}**`)
  .setColor(0x2ECC71) // Verde
  .setThumbnail(this.getItemImageUrl(killer.Equipment?.MainHand?.Type, killer.Equipment?.MainHand?.Quality))
- .setImage('https://media.discordapp.net/attachments/881536030156480552/123456789/kill_banner.png') // Opcional: banner decorativo
  .setTimestamp(new Date(event.TimeStamp))
  .setFooter({ text: `Event ID: ${event.EventId} • Albion Killboard` });
 
@@ -585,14 +614,11 @@ class KillboardHandler {
  const item = equipment[slot.key];
  if (item && item.Type) {
  const tier = this.getItemTier(item.Type);
- const enchant = item.Count > 1 ? `.${item.Count - 1}` : '';
+ const enchant = this.getItemEnchant(item.Type);
  const quality = this.getQualityStars(item.Quality);
- const itemValue = showValues ? `(${this.formatSilver(this.getItemValue(item))})` : '';
+ const itemValue = showValues ? ` (${this.formatSilver(this.getItemValue(item))})` : '';
 
- // Link para imagem do item
- const itemImage = this.getItemImageUrl(item.Type, item.Quality);
-
- lines.push(`${slot.icon} **${slot.name}:** ${tier}${enchant} ${quality} ${itemValue}`);
+ lines.push(`${slot.icon} **${slot.name}:** ${tier}${enchant} ${quality}${itemValue}`);
  } else if (highlightLost) {
  lines.push(`${slot.icon} **${slot.name}:** ❌ *Vazio*`);
  }
@@ -671,23 +697,33 @@ class KillboardHandler {
  const tier = this.getItemTier(item.Type);
  const tierNum = parseInt(tier.replace('T', '')) || 1;
  const quality = item.Quality || 1;
- const enchant = item.Count > 1 ? (item.Count - 1) : 0;
+ const enchantMatch = item.Type.match(/@(\d+)$/);
+ const enchant = enchantMatch ? parseInt(enchantMatch[1]) : 0;
 
- // Fórmula estimada (muito simplificada)
- const baseValue = Math.pow(2, tierNum) * 100;
+ // Fórmula estimada baseada em tier, qualidade e encantamento
+ const baseValue = Math.pow(2, tierNum) * 10000;
  const qualityMultiplier = [1, 1, 1.5, 2, 2.5, 3][quality] || 1;
- const enchantMultiplier = 1 + (enchant * 0.5);
+ const enchantMultiplier = 1 + (enchant * 0.75);
 
  return Math.round(baseValue * qualityMultiplier * enchantMultiplier);
  }
 
  /**
- * Obtém tier do item pelo ID
+ * Obtém tier do item pelo ID (ex: T4_MAIN_SWORD@2 → 'T4')
  */
  getItemTier(itemType) {
  if (!itemType) return 'T1';
- const match = itemType.match(/T(\d+)/);
+ const match = itemType.match(/^T(\d+)/);
  return match ? `T${match[1]}` : 'T1';
+ }
+
+ /**
+ * Obtém nível de enchantamento do item (ex: T4_MAIN_SWORD@2 → '.2')
+ */
+ getItemEnchant(itemType) {
+ if (!itemType) return '';
+ const match = itemType.match(/@(\d+)$/);
+ return match ? `.${match[1]}` : '';
  }
 
  /**
