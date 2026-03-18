@@ -806,6 +806,24 @@ client.on(Events.InteractionCreate, async interaction => {
  return;
  }
 
+ if (customId.startsWith('loot_atualizar_part_')) {
+ const simulationId = customId.replace('loot_atualizar_part_', '');
+ await LootSplitHandler.handleAtualizarParticipacao(interaction, simulationId);
+ return;
+ }
+
+ if (customId.startsWith('loot_clear_users_')) {
+ const simulationId = customId.replace('loot_clear_users_', '');
+ await LootSplitHandler.clearUserSelection(interaction, simulationId);
+ return;
+ }
+
+ if (customId.startsWith('loot_proceed_taxa_')) {
+ const simulationId = customId.replace('loot_proceed_taxa_', '');
+ await LootSplitHandler.openTaxaModal(interaction, simulationId);
+ return;
+ }
+
  // DEPÓSITO - Sistema Antigo (mantido para compatibilidade)
  if (customId === 'btn_deposito_novo') {
  await DepositHandler.handleDepositoButton(interaction);
@@ -1204,6 +1222,12 @@ client.on(Events.InteractionCreate, async interaction => {
  return;
  }
 
+ if (interaction.customId.startsWith('loot_select_users_')) {
+ const simulationId = interaction.customId.replace('loot_select_users_', '');
+ await LootSplitHandler.processUserSelection(interaction, simulationId);
+ return;
+ }
+
  if (interaction.customId === 'mlist_filter_cargo') {
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleFilterSelect(interaction);
@@ -1401,6 +1425,12 @@ client.on(Events.InteractionCreate, async interaction => {
 
  if (interaction.customId === 'modal_quitar_emprestimo') {
  await FinanceHandler.processLoanPaymentRequest(interaction);
+ return;
+ }
+
+ if (interaction.customId.startsWith('modal_taxa_participacao_')) {
+ const simulationId = interaction.customId.replace('modal_taxa_participacao_', '');
+ await LootSplitHandler.processTaxaUpdate(interaction, simulationId);
  return;
  }
 

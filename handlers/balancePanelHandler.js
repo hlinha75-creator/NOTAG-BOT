@@ -267,7 +267,7 @@ class BalancePanelHandler {
       await interaction.deferReply({ ephemeral: true });
 
       const transacoes = await Database.db.allAsync(`
-        SELECT tipo, valor, descricao, created_at
+        SELECT type, amount, reason, created_at
         FROM transactions
         ORDER BY created_at DESC
         LIMIT 15
@@ -280,9 +280,9 @@ class BalancePanelHandler {
       } else {
         transacoes.forEach((t) => {
           const data = new Date(t.created_at).toLocaleString('pt-BR');
-          const sinal = t.tipo === 'credito' ? '➕' : '➖';
-          const valor = (t.valor || 0).toLocaleString('pt-BR');
-          const descricao = t.descricao || t.tipo;
+          const sinal = t.type === 'credito' ? '➕' : '➖';
+          const valor = (t.amount || 0).toLocaleString('pt-BR');
+          const descricao = t.reason || t.type;
           description += `${sinal} \`${valor}\` — ${descricao}\n*${data}*\n\n`;
         });
       }
