@@ -1199,17 +1199,22 @@ class LootSplitHandler {
       }
 
       // Deletar canal após 10 segundos
-      const canalEvento = interaction.channel;
-      if (canalEvento && canalEvento.deletable) {
-        setTimeout(async () => {
-          try {
-            await canalEvento.delete('Evento arquivado');
-            console.log(`[LootSplit] Deleted archived event channel: ${canalEvento.id}`);
-          } catch (e) {
-            console.error('[LootSplit] Error deleting channel:', e);
+      const canalEventoId = interaction.channelId;
+      const guildRef = interaction.guild;
+      setTimeout(async () => {
+        try {
+          const canalParaDeletar = guildRef.channels.cache.get(canalEventoId)
+            || await guildRef.channels.fetch(canalEventoId).catch(() => null);
+          if (canalParaDeletar) {
+            await canalParaDeletar.delete('Evento arquivado');
+            console.log(`[LootSplit] Canal do evento deletado: ${canalEventoId}`);
+          } else {
+            console.warn(`[LootSplit] Canal ${canalEventoId} não encontrado para deletar.`);
           }
-        }, 10000);
-      }
+        } catch (e) {
+          console.error('[LootSplit] Erro ao deletar canal do evento:', e);
+        }
+      }, 10000);
 
       // Log no canal de logs
       const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
