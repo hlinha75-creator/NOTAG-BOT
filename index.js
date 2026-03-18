@@ -267,6 +267,7 @@ global.finishedEvents = new Map();
 global.simulations = new Map();
 global.pendingWithdrawals = new Map();
 global.pendingLoans = new Map();
+global.pendingLoanPayments = new Map();
 global.pendingTransfers = new Map();
 global.pendingOrbDeposits = new Map();
 global.activeXpEvents = new Map();
@@ -1291,8 +1292,9 @@ client.on(Events.InteractionCreate, async interaction => {
  if (interaction.customId === 'select_orb_type') {
  const orbType = interaction.values[0];
  if (!global.orbTemp) global.orbTemp = new Map();
- global.orbTemp.set(interaction.user.id, { orbType });
- await OrbHandler.showOrbTypeSelect(interaction);
+ const existing = global.orbTemp.get(interaction.user.id) || {};
+ global.orbTemp.set(interaction.user.id, { ...existing, orbType });
+ await OrbHandler.showUserSelect(interaction);
  return;
  }
 
