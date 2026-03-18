@@ -49,9 +49,8 @@ class XpHandler {
 
       // Verificar level up
       let leveledUp = false;
-      const xpForNext = XpHandler.getXpForNextLevel(user.level);
-      while (user.xp >= xpForNext) {
-        user.xp -= xpForNext;
+      while (user.xp >= XpHandler.getXpForNextLevel(user.level)) {
+        user.xp -= XpHandler.getXpForNextLevel(user.level);
         user.level++;
         leveledUp = true;
       }

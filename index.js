@@ -874,6 +874,25 @@ client.on(Events.InteractionCreate, async interaction => {
  return;
  }
 
+ // FINANCEIRO — rotas específicas antes da genérica do LootSplit
+ if (customId.startsWith('fin_recusar_saque_')) {
+ const withdrawalId = customId.replace('fin_recusar_saque_', '');
+ await FinanceHandler.handleRejectWithdrawal(interaction, withdrawalId);
+ return;
+ }
+
+ if (customId.startsWith('fin_recusar_emprestimo_')) {
+ const loanId = customId.replace('fin_recusar_emprestimo_', '');
+ await FinanceHandler.handleRejectLoan(interaction, loanId);
+ return;
+ }
+
+ if (customId.startsWith('fin_recusar_quitacao_')) {
+ const paymentId = customId.replace('fin_recusar_quitacao_', '');
+ await FinanceHandler.handleRejectLoanPayment(interaction, paymentId);
+ return;
+ }
+
  if (customId.startsWith('fin_recusar_')) {
  const simulationId = customId.replace('fin_recusar_', '');
  await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, false);
@@ -1022,16 +1041,10 @@ client.on(Events.InteractionCreate, async interaction => {
  return;
  }
 
- // FINANCEIRO
+ // FINANCEIRO — confirmações (recusas já tratadas acima, antes do loot split)
  if (customId.startsWith('fin_confirmar_saque_')) {
  const withdrawalId = customId.replace('fin_confirmar_saque_', '');
  await FinanceHandler.handleConfirmWithdrawal(interaction, withdrawalId);
- return;
- }
-
- if (customId.startsWith('fin_recusar_saque_')) {
- const withdrawalId = customId.replace('fin_recusar_saque_', '');
- await FinanceHandler.handleRejectWithdrawal(interaction, withdrawalId);
  return;
  }
 
@@ -1041,21 +1054,9 @@ client.on(Events.InteractionCreate, async interaction => {
  return;
  }
 
- if (customId.startsWith('fin_recusar_emprestimo_')) {
- const loanId = customId.replace('fin_recusar_emprestimo_', '');
- await FinanceHandler.handleRejectLoan(interaction, loanId);
- return;
- }
-
  if (customId.startsWith('fin_confirmar_quitacao_')) {
  const paymentId = customId.replace('fin_confirmar_quitacao_', '');
  await FinanceHandler.handleConfirmLoanPayment(interaction, paymentId);
- return;
- }
-
- if (customId.startsWith('fin_recusar_quitacao_')) {
- const paymentId = customId.replace('fin_recusar_quitacao_', '');
- await FinanceHandler.handleRejectLoanPayment(interaction, paymentId);
  return;
  }
 
