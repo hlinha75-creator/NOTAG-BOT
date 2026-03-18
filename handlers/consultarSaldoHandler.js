@@ -18,7 +18,8 @@ class ConsultarSaldoHandler {
  '💰 **Consultar Saldo** - Veja seu saldo atual no privado\n' +
  '💸 **Sacar Saldo** - Solicite um saque do seu saldo\n' +
  '💳 **Solicitar Empréstimo** - Peça um empréstimo da guilda\n' +
- '🔄 **Transferir Saldo** - Envie saldo para outro jogador'
+ '🔄 **Transferir Saldo** - Envie saldo para outro jogador\n' +
+ '✅ **Quitar Empréstimo** - Pague parte ou toda a sua dívida'
  )
  .setColor(0x3498DB)
  .setFooter({ text: 'Clique nos botões abaixo para interagir' })
@@ -41,7 +42,11 @@ class ConsultarSaldoHandler {
  new ButtonBuilder()
  .setCustomId('btn_transferir_saldo')
  .setLabel('🔄 Transferir Saldo')
- .setStyle(ButtonStyle.Secondary)
+ .setStyle(ButtonStyle.Secondary),
+ new ButtonBuilder()
+ .setCustomId('btn_quitar_emprestimo')
+ .setLabel('✅ Quitar Empréstimo')
+ .setStyle(ButtonStyle.Danger)
  );
 
  await channel.send({
@@ -120,6 +125,22 @@ class ConsultarSaldoHandler {
  console.error(`[ConsultarSaldo] Error showing transfer modal:`, error);
  await interaction.reply({
  content: '❌ Erro ao abrir modal de transferência.',
+ ephemeral: true
+ });
+ }
+ }
+
+ static async handleQuitarEmprestimo(interaction) {
+ try {
+ console.log(`[ConsultarSaldo] Loan payment requested by ${interaction.user.id}`);
+
+ const modal = FinanceHandler.createLoanPaymentModal();
+ await interaction.showModal(modal);
+
+ } catch (error) {
+ console.error(`[ConsultarSaldo] Error showing loan payment modal:`, error);
+ await interaction.reply({
+ content: '❌ Erro ao abrir modal de quitação de empréstimo.',
  ephemeral: true
  });
  }

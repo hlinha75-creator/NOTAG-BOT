@@ -897,6 +897,11 @@ client.on(Events.InteractionCreate, async interaction => {
  return;
  }
 
+ if (customId === 'btn_quitar_emprestimo') {
+ await ConsultarSaldoHandler.handleQuitarEmprestimo(interaction);
+ return;
+ }
+
  // FINANCEIRO
  if (customId.startsWith('fin_confirmar_saque_')) {
  const withdrawalId = customId.replace('fin_confirmar_saque_', '');
@@ -919,6 +924,18 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId.startsWith('fin_recusar_emprestimo_')) {
  const loanId = customId.replace('fin_recusar_emprestimo_', '');
  await FinanceHandler.handleRejectLoan(interaction, loanId);
+ return;
+ }
+
+ if (customId.startsWith('fin_confirmar_quitacao_')) {
+ const paymentId = customId.replace('fin_confirmar_quitacao_', '');
+ await FinanceHandler.handleConfirmLoanPayment(interaction, paymentId);
+ return;
+ }
+
+ if (customId.startsWith('fin_recusar_quitacao_')) {
+ const paymentId = customId.replace('fin_recusar_quitacao_', '');
+ await FinanceHandler.handleRejectLoanPayment(interaction, paymentId);
  return;
  }
 
@@ -1362,6 +1379,11 @@ client.on(Events.InteractionCreate, async interaction => {
 
  if (interaction.customId === 'modal_solicitar_emprestimo') {
  await FinanceHandler.processLoanRequest(interaction);
+ return;
+ }
+
+ if (interaction.customId === 'modal_quitar_emprestimo') {
+ await FinanceHandler.processLoanPaymentRequest(interaction);
  return;
  }
 

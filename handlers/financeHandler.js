@@ -585,6 +585,293 @@ class FinanceHandler {
     }
   }
 
+  // ========== Quitar Empréstimo ==========
+  static createLoanPaymentModal() {
+    const modal = new ModalBuilder()
+      .setCustomId('modal_quitar_emprestimo')
+      .setTitle('✅ Quitar Empréstimo');
+
+    const valorInput = new TextInputBuilder()
+      .setCustomId('valor_quitacao')
+      .setLabel('Valor que deseja quitar (em pratas)')
+      .setPlaceholder('Ex: 1000000 para 1M')
+      .setStyle(TextInputStyle.Short)
+      .setRequired(true)
+      .setMaxLength(12);
+
+    modal.addComponents(new ActionRowBuilder().addComponents(valorInput));
+    return modal;
+  }
+
+  static async processLoanPaymentRequest(interaction) {
+    try {
+      const valorInput = interaction.fields.getTextInputValue('valor_quitacao').trim();
+      const valorLimpo = valorInput.replace(/\./g, '').replace(/,/g, '');
+      const valor = parseInt(valorLimpo);
+
+      if (isNaN(valor) || valor <= 0) {
+        return interaction.reply({
+          content: '❌ Valor inválido! Digite apenas números (ex: 500000 para 500k)',
+          ephemeral: true
+        });
+      }
+
+      const user = await Database.getUser(interaction.user.id);
+
+      if (!user) {
+        return interaction.reply({
+          content: '❌ Erro ao consultar seus dados. Tente novamente mais tarde.',
+          ephemeral: true
+        });
+      }
+
+      const dividaAtual = user.emprestimosPendentes || 0;
+
+      if (dividaAtual <= 0) {
+        return interaction.reply({
+          content: '✅ Você não possui empréstimos pendentes para quitar!',
+          ephemeral: true
+        });
+      }
+
+      if (valor > dividaAtual) {
+        return interaction.reply({
+          content: `❌ O valor de quitação (\`${this.formatSafeNumber(valor)}\`) é maior que sua dívida atual (\`${this.formatSafeNumber(dividaAtual)}\`).`,
+          ephemeral: true
+        });
+      }
+
+      if (user.saldo < valor) {
+        return interaction.reply({
+          content: `❌ Saldo insuficiente! Você tem \`${this.formatSafeNumber(user.saldo)}\` mas tentou quitar \`${this.formatSafeNumber(valor)}\`.`,
+          ephemeral: true
+        });
+      }
+
+      const paymentId = `pay_${Date.now()}_${interaction.user.id}`;
+      const paymentData = {
+        id: paymentId,
+        userId: interaction.user.id,
+        userTag: interaction.user.tag,
+        valor: valor,
+        dividaAtual: dividaAtual,
+        dividaRestante: dividaAtual - valor,
+        status: 'pendente',
+        timestamp: Date.now()
+      };
+
+      if (!global.pendingLoanPayments) global.pendingLoanPayments = new Map();
+      global.pendingLoanPayments.set(paymentId, paymentData);
+
+      console.log(`[Finance] Loan payment ${paymentId} created by ${interaction.user.id} for ${valor}`);
+
+      const canalFinanceiro = interaction.guild.channels.cache.find(c => c.name === '📊╠financeiro');
+      if (!canalFinanceiro) {
+        return interaction.reply({
+          content: '❌ Canal financeiro não encontrado! Contate um ADM.',
+          ephemeral: true
+        });
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle('✅ SOLICITAÇÃO DE QUITAÇÃO DE EMPRÉSTIMO')
+        .setDescription(
+          `**Jogador:** <@${interaction.user.id}> (${interaction.user.tag})\n` +
+          `**Valor a Quitar:** \`${this.formatSafeNumber(valor)}\`\n` +
+          `**Dívida Atual:** \`${this.formatSafeNumber(dividaAtual)}\`\n` +
+          `**Dívida Após Quitação:** \`${this.formatSafeNumber(dividaAtual - valor)}\``
+        )
+        .setColor(0x2ECC71)
+        .setTimestamp();
+
+      const botoes = new ActionRowBuilder()
+        .addComponents(
+          new ButtonBuilder()
+            .setCustomId(`fin_confirmar_quitacao_${paymentId}`)
+            .setLabel('✅ Confirmar Quitação')
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId(`fin_recusar_quitacao_${paymentId}`)
+            .setLabel('❌ Recusar Quitação')
+            .setStyle(ButtonStyle.Danger)
+        );
+
+      const admRole = interaction.guild.roles.cache.find(r => r.name === 'ADM');
+      const staffRole = interaction.guild.roles.cache.find(r => r.name === 'Staff');
+      const tesoureiroRole = interaction.guild.roles.cache.find(r => r.name === 'tesoureiro');
+
+      let mentions = '';
+      if (tesoureiroRole) mentions += `<@&${tesoureiroRole.id}> `;
+      if (admRole) mentions += `<@&${admRole.id}> `;
+      if (staffRole) mentions += `<@&${staffRole.id}>`;
+
+      await canalFinanceiro.send({
+        content: mentions ? `🔔 ${mentions} Solicitação de quitação de empréstimo!` : '🔔 Solicitação de quitação de empréstimo!',
+        embeds: [embed],
+        components: [botoes]
+      });
+
+      await interaction.reply({
+        content: `✅ Solicitação de quitação de \`${this.formatSafeNumber(valor)}\` enviada para análise! Aguarde aprovação.`,
+        ephemeral: true
+      });
+
+    } catch (error) {
+      console.error(`[Finance] Error processing loan payment request:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao processar solicitação de quitação.',
+        ephemeral: true
+      });
+    }
+  }
+
+  static async handleConfirmLoanPayment(interaction, paymentId) {
+    try {
+      console.log(`[Finance] Confirming loan payment ${paymentId}`);
+
+      const payment = global.pendingLoanPayments?.get(paymentId);
+      if (!payment) {
+        return interaction.reply({
+          content: '❌ Solicitação de quitação não encontrada ou já processada!',
+          ephemeral: true
+        });
+      }
+
+      const isADM = interaction.member.roles.cache.some(r => r.name === 'ADM');
+      const isStaff = interaction.member.roles.cache.some(r => r.name === 'Staff');
+      const isTesoureiro = interaction.member.roles.cache.some(r => r.name === 'tesoureiro');
+
+      if (!isADM && !isStaff && !isTesoureiro) {
+        return interaction.reply({
+          content: '❌ Apenas ADM, Staff ou Tesoureiro podem confirmar quitações!',
+          ephemeral: true
+        });
+      }
+
+      await Database.removeSaldo(payment.userId, payment.valor, 'quitacao_emprestimo');
+      const novaDivida = Math.max(0, payment.dividaAtual - payment.valor);
+      await Database.updateUser(payment.userId, { emprestimos_pendentes: novaDivida });
+
+      payment.status = 'aprovado';
+      payment.aprovadoPor = interaction.user.id;
+      payment.aprovadoEm = Date.now();
+
+      try {
+        const discordUser = await interaction.client.users.fetch(payment.userId);
+        const userData = await Database.getUser(payment.userId);
+        const novoSaldo = userData?.saldo || 0;
+
+        const embed = new EmbedBuilder()
+          .setTitle('✅ QUITAÇÃO DE EMPRÉSTIMO APROVADA')
+          .setDescription(
+            `💳 **Pagamento Confirmado!**\n\n` +
+            `\> **Valor Quitado:** \`${this.formatSafeNumber(payment.valor)}\`\n` +
+            `\> **Aprovado por:** \`${interaction.user.tag}\`\n` +
+            `\> **Data:** ${new Date().toLocaleString('pt-BR')}\n\n` +
+            `💰 **Novo Saldo:** \`${this.formatSafeNumber(novoSaldo)}\`\n` +
+            `📊 **Dívida Restante:** \`${this.formatSafeNumber(novaDivida)}\``
+          )
+          .setColor(0x2ECC71)
+          .setFooter({ text: 'NOTAG Bot • Sistema Financeiro' })
+          .setTimestamp();
+
+        await discordUser.send({ embeds: [embed] });
+      } catch (e) {
+        console.log(`[Finance] Could not DM user ${payment.userId}`);
+      }
+
+      await interaction.update({
+        content: `✅ Quitação de \`${this.formatSafeNumber(payment.valor)}\` aprovada para ${payment.userTag}!`,
+        components: []
+      });
+
+      const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
+      if (canalLogs) {
+        await canalLogs.send({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle('📝 LOG: QUITAÇÃO DE EMPRÉSTIMO APROVADA')
+              .setDescription(
+                `**Jogador:** <@${payment.userId}>\n` +
+                `**Valor Quitado:** \`${this.formatSafeNumber(payment.valor)}\`\n` +
+                `**Dívida Restante:** \`${this.formatSafeNumber(novaDivida)}\`\n` +
+                `**Aprovado por:** <@${interaction.user.id}>`
+              )
+              .setColor(0x2ECC71)
+              .setTimestamp()
+          ]
+        });
+      }
+
+    } catch (error) {
+      console.error(`[Finance] Error confirming loan payment:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao confirmar quitação.',
+        ephemeral: true
+      });
+    }
+  }
+
+  static async handleRejectLoanPayment(interaction, paymentId) {
+    try {
+      console.log(`[Finance] Rejecting loan payment ${paymentId}`);
+
+      const payment = global.pendingLoanPayments?.get(paymentId);
+      if (!payment) {
+        return interaction.reply({
+          content: '❌ Solicitação não encontrada!',
+          ephemeral: true
+        });
+      }
+
+      const isADM = interaction.member.roles.cache.some(r => r.name === 'ADM');
+      const isStaff = interaction.member.roles.cache.some(r => r.name === 'Staff');
+      const isTesoureiro = interaction.member.roles.cache.some(r => r.name === 'tesoureiro');
+
+      if (!isADM && !isStaff && !isTesoureiro) {
+        return interaction.reply({
+          content: '❌ Sem permissão!',
+          ephemeral: true
+        });
+      }
+
+      payment.status = 'recusado';
+      payment.recusadoPor = interaction.user.id;
+
+      try {
+        const discordUser = await interaction.client.users.fetch(payment.userId);
+
+        const embed = new EmbedBuilder()
+          .setTitle('❌ QUITAÇÃO DE EMPRÉSTIMO RECUSADA')
+          .setDescription(
+            `⚠️ **Sua solicitação de quitação foi recusada.**\n\n` +
+            `\> **Valor Solicitado:** \`${this.formatSafeNumber(payment.valor)}\`\n` +
+            `\> **Recusado por:** \`${interaction.user.tag}\`\n\n` +
+            `💡 *Entre em contato com a administração para mais informações.*`
+          )
+          .setColor(0xE74C3C)
+          .setFooter({ text: 'NOTAG Bot • Sistema Financeiro' })
+          .setTimestamp();
+
+        await discordUser.send({ embeds: [embed] });
+      } catch (e) {
+        console.log(`[Finance] Could not DM user ${payment.userId}`);
+      }
+
+      await interaction.update({
+        content: `❌ Quitação recusada.`,
+        components: []
+      });
+
+    } catch (error) {
+      console.error(`[Finance] Error rejecting loan payment:`, error);
+      await interaction.reply({
+        content: '❌ Erro ao recusar quitação.',
+        ephemeral: true
+      });
+    }
+  }
+
   // ========== Transferência (ATUALIZADO COM COMENTÁRIO) ==========
   static createTransferModal() {
     const modal = new ModalBuilder()
