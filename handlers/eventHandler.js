@@ -17,9 +17,11 @@ class EventHandler {
 
   static initialize() {
     if (!global.activeEvents) global.activeEvents = new Map();
+    if (!global.finishedEvents) global.finishedEvents = new Map();
 
     // ✅ CORREÇÃO: Carregar eventos salvos do arquivo
     this.loadEvents();
+    this.loadFinishedEvents();
 
     console.log(`📝 EventHandler inicializado. Eventos ativos carregados: ${global.activeEvents.size}`);
   }
@@ -97,6 +99,71 @@ class EventHandler {
       console.log(`✅ ${eventsArray.length} eventos ativos carregados do arquivo.`);
     } catch (error) {
       console.error('❌ Erro ao carregar eventos:', error);
+    }
+  }
+
+  static saveFinishedEvents() {
+    try {
+      const dataDir = path.join(__dirname, '..', 'data');
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+
+      const eventsArray = [];
+
+      for (const [eventId, eventData] of global.finishedEvents) {
+        const participantesArray = [];
+        if (eventData.participantes instanceof Map) {
+          for (const [userId, data] of eventData.participantes) {
+            participantesArray.push([userId, data]);
+          }
+        } else if (typeof eventData.participantes === 'object') {
+          for (const [userId, data] of Object.entries(eventData.participantes)) {
+            participantesArray.push([userId, data]);
+          }
+        }
+
+        eventsArray.push([
+          eventId,
+          {
+            ...eventData,
+            participantes: participantesArray
+          }
+        ]);
+      }
+
+      fs.writeFileSync(
+        path.join(dataDir, 'finished_events.json'),
+        JSON.stringify(eventsArray, null, 2)
+      );
+    } catch (error) {
+      console.error('❌ Erro ao salvar eventos finalizados:', error);
+    }
+  }
+
+  static loadFinishedEvents() {
+    try {
+      const filePath = path.join(__dirname, '..', 'data', 'finished_events.json');
+
+      if (!fs.existsSync(filePath)) return;
+
+      const data = fs.readFileSync(filePath, 'utf8');
+      const eventsArray = JSON.parse(data);
+
+      for (const [eventId, eventData] of eventsArray) {
+        const participantesMap = new Map();
+        if (Array.isArray(eventData.participantes)) {
+          for (const [userId, d] of eventData.participantes) {
+            participantesMap.set(userId, d);
+          }
+        }
+        eventData.participantes = participantesMap;
+        global.finishedEvents.set(eventId, eventData);
+      }
+
+      console.log(`✅ ${eventsArray.length} eventos finalizados carregados do arquivo.`);
+    } catch (error) {
+      console.error('❌ Erro ao carregar eventos finalizados:', error);
     }
   }
 
@@ -818,8 +885,9 @@ class EventHandler {
 
       global.activeEvents.delete(eventId);
 
-      // ✅ Salvar após finalizar (remover do arquivo de ativos)
+      // ✅ Salvar após finalizar (remover do arquivo de ativos e gravar em finalizados)
       this.saveEvents();
+      this.saveFinishedEvents();
 
       await interaction.reply({
         content: '✅ **Evento finalizado com sucesso!**\n📊 Resumo criado em eventos encerrados.',
