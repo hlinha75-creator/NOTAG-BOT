@@ -201,7 +201,7 @@ class FinanceHandler {
       }
 
       await interaction.update({
-        content: `✅ Saque de \`${this.formatSafeNumber(withdrawal.valor)}\` aprovado para ${withdrawal.userTag}!`,
+        content: `✅ Saque de \`${this.formatSafeNumber(withdrawal.valor)}\` aprovado para ${withdrawal.userTag}!\n👤 **Aprovado por:** ${interaction.user.tag}`,
         components: []
       });
 
@@ -493,7 +493,7 @@ class FinanceHandler {
       }
 
       await interaction.update({
-        content: `✅ Empréstimo de \`${this.formatSafeNumber(loan.valor)}\` aprovado para ${loan.userTag}!`,
+        content: `✅ Empréstimo de \`${this.formatSafeNumber(loan.valor)}\` aprovado para ${loan.userTag}!\n👤 **Aprovado por:** ${interaction.user.tag}`,
         components: []
       });
 
@@ -572,7 +572,7 @@ class FinanceHandler {
       }
 
       await interaction.update({
-        content: `❌ Empréstimo recusado.`,
+        content: `❌ Empréstimo recusado. Motivo enviado ao jogador.\n👤 **Recusado por:** ${interaction.user.tag}`,
         components: []
       });
 
@@ -781,7 +781,7 @@ class FinanceHandler {
       }
 
       await interaction.update({
-        content: `✅ Quitação de \`${this.formatSafeNumber(payment.valor)}\` aprovada para ${payment.userTag}!`,
+        content: `✅ Quitação de \`${this.formatSafeNumber(payment.valor)}\` aprovada para ${payment.userTag}!\n👤 **Aprovado por:** ${interaction.user.tag}`,
         components: []
       });
 
@@ -859,7 +859,7 @@ class FinanceHandler {
       }
 
       await interaction.update({
-        content: `❌ Quitação recusada.`,
+        content: `❌ Quitação recusada. Motivo enviado ao jogador.\n👤 **Recusado por:** ${interaction.user.tag}`,
         components: []
       });
 
