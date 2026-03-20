@@ -6,6 +6,9 @@ const {
 } = require('discord.js');
 const FinanceHandler = require('./financeHandler');
 
+const balanceCooldowns = new Map();
+const BALANCE_COOLDOWN_MS = 8000;
+
 class ConsultarSaldoHandler {
  static async sendPanel(channel) {
  try {
@@ -63,6 +66,16 @@ class ConsultarSaldoHandler {
  }
 
  static async handleConsultarSaldo(interaction) {
+ const now = Date.now();
+ const lastUsed = balanceCooldowns.get(interaction.user.id);
+ if (lastUsed && (now - lastUsed) < BALANCE_COOLDOWN_MS) {
+ return interaction.reply({
+ content: '⏳ Aguarde alguns segundos antes de consultar novamente.',
+ ephemeral: true
+ });
+ }
+ balanceCooldowns.set(interaction.user.id, now);
+
  try {
  console.log(`[ConsultarSaldo] Balance check requested by ${interaction.user.id}`);
 
