@@ -77,6 +77,7 @@ class FinanceHandler {
         userTag: interaction.user.tag,
         valor: valor,
         saldoAtual: user.saldo,
+        guildId: interaction.guild.id,
         status: 'pendente',
         timestamp: Date.now()
       };
@@ -158,6 +159,13 @@ class FinanceHandler {
         });
       }
 
+      if (withdrawal.status !== 'pendente') {
+        return interaction.reply({
+          content: '❌ Esta solicitação já foi processada!',
+          ephemeral: true
+        });
+      }
+
       const isADM = interaction.member.roles.cache.some(r => r.name === 'ADM');
       const isStaff = interaction.member.roles.cache.some(r => r.name === 'Staff');
       const isTesoureiro = interaction.member.roles.cache.some(r => r.name === 'tesoureiro');
@@ -169,7 +177,11 @@ class FinanceHandler {
         });
       }
 
-      await Database.removeSaldo(withdrawal.userId, withdrawal.valor, 'saque_aprovado');
+      withdrawal.status = 'processando';
+      await interaction.deferUpdate();
+
+      const guildId = withdrawal.guildId || interaction.guild.id;
+      await Database.removeSaldo(withdrawal.userId, withdrawal.valor, 'saque_aprovado', guildId);
 
       withdrawal.status = 'aprovado';
       withdrawal.aprovadoPor = interaction.user.id;
@@ -200,7 +212,7 @@ class FinanceHandler {
         console.log(`[Finance] Could not DM user ${withdrawal.userId}`);
       }
 
-      await interaction.update({
+      await interaction.editReply({
         content: `✅ Saque de \`${this.formatSafeNumber(withdrawal.valor)}\` aprovado para ${withdrawal.userTag}!\n👤 **Aprovado por:** ${interaction.user.tag}`,
         components: []
       });
@@ -223,10 +235,10 @@ class FinanceHandler {
       }
 
     } catch (error) {
+      withdrawal.status = 'pendente';
       console.error(`[Finance] Error confirming withdrawal:`, error);
-      await interaction.reply({
+      await interaction.editReply({
         content: '❌ Erro ao confirmar saque.',
-        ephemeral: true
       });
     }
   }
@@ -365,6 +377,7 @@ class FinanceHandler {
         userId: interaction.user.id,
         userTag: interaction.user.tag,
         valor: valor,
+        guildId: interaction.guild.id,
         status: 'pendente',
         timestamp: Date.now()
       };
@@ -444,6 +457,13 @@ class FinanceHandler {
         });
       }
 
+      if (loan.status !== 'pendente') {
+        return interaction.reply({
+          content: '❌ Esta solicitação já foi processada!',
+          ephemeral: true
+        });
+      }
+
       const isADM = interaction.member.roles.cache.some(r => r.name === 'ADM');
       const isStaff = interaction.member.roles.cache.some(r => r.name === 'Staff');
       const isTesoureiro = interaction.member.roles.cache.some(r => r.name === 'tesoureiro');
@@ -455,7 +475,11 @@ class FinanceHandler {
         });
       }
 
-      await Database.addSaldo(loan.userId, loan.valor, 'emprestimo_aprovado');
+      loan.status = 'processando';
+      await interaction.deferUpdate();
+
+      const guildId = loan.guildId || interaction.guild.id;
+      await Database.addSaldo(loan.userId, loan.valor, 'emprestimo_aprovado', guildId);
       const user = await Database.getUser(loan.userId);
       const novaDivida = (user.emprestimosPendentes || 0) + loan.valor;
       await Database.updateUser(loan.userId, { emprestimos_pendentes: novaDivida });
@@ -492,7 +516,7 @@ class FinanceHandler {
         console.log(`[Finance] Could not DM user ${loan.userId}`);
       }
 
-      await interaction.update({
+      await interaction.editReply({
         content: `✅ Empréstimo de \`${this.formatSafeNumber(loan.valor)}\` aprovado para ${loan.userTag}!\n👤 **Aprovado por:** ${interaction.user.tag}`,
         components: []
       });
@@ -515,10 +539,10 @@ class FinanceHandler {
       }
 
     } catch (error) {
+      loan.status = 'pendente';
       console.error(`[Finance] Error confirming loan:`, error);
-      await interaction.reply({
+      await interaction.editReply({
         content: '❌ Erro ao aprovar empréstimo.',
-        ephemeral: true
       });
     }
   }
@@ -656,6 +680,7 @@ class FinanceHandler {
         valor: valor,
         dividaAtual: dividaAtual,
         dividaRestante: dividaAtual - valor,
+        guildId: interaction.guild.id,
         status: 'pendente',
         timestamp: Date.now()
       };
@@ -737,6 +762,13 @@ class FinanceHandler {
         });
       }
 
+      if (payment.status !== 'pendente') {
+        return interaction.reply({
+          content: '❌ Esta solicitação já foi processada!',
+          ephemeral: true
+        });
+      }
+
       const isADM = interaction.member.roles.cache.some(r => r.name === 'ADM');
       const isStaff = interaction.member.roles.cache.some(r => r.name === 'Staff');
       const isTesoureiro = interaction.member.roles.cache.some(r => r.name === 'tesoureiro');
@@ -748,7 +780,11 @@ class FinanceHandler {
         });
       }
 
-      await Database.removeSaldo(payment.userId, payment.valor, 'quitacao_emprestimo');
+      payment.status = 'processando';
+      await interaction.deferUpdate();
+
+      const guildId = payment.guildId || interaction.guild.id;
+      await Database.removeSaldo(payment.userId, payment.valor, 'quitacao_emprestimo', guildId);
       const novaDivida = Math.max(0, payment.dividaAtual - payment.valor);
       await Database.updateUser(payment.userId, { emprestimos_pendentes: novaDivida });
 
@@ -780,7 +816,7 @@ class FinanceHandler {
         console.log(`[Finance] Could not DM user ${payment.userId}`);
       }
 
-      await interaction.update({
+      await interaction.editReply({
         content: `✅ Quitação de \`${this.formatSafeNumber(payment.valor)}\` aprovada para ${payment.userTag}!\n👤 **Aprovado por:** ${interaction.user.tag}`,
         components: []
       });
@@ -804,10 +840,10 @@ class FinanceHandler {
       }
 
     } catch (error) {
+      payment.status = 'pendente';
       console.error(`[Finance] Error confirming loan payment:`, error);
-      await interaction.reply({
+      await interaction.editReply({
         content: '❌ Erro ao confirmar quitação.',
-        ephemeral: true
       });
     }
   }

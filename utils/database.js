@@ -460,7 +460,7 @@ class DatabaseManager {
  return user?.saldo || 0;
  }
 
- async addSaldo(userId, amount, reason = 'deposit') {
+ async addSaldo(userId, amount, reason = 'deposit', guildId = '') {
  const user = await this.getUser(userId);
  const newSaldo = (user?.saldo || 0) + amount;
 
@@ -473,13 +473,14 @@ class DatabaseManager {
  type: 'credito',
  userId: userId,
  amount: amount,
- reason: reason
+ reason: reason,
+ guildId: guildId
  });
 
  return true;
  }
 
- async removeSaldo(userId, amount, reason = 'withdraw') {
+ async removeSaldo(userId, amount, reason = 'withdraw', guildId = '') {
  const user = await this.getUser(userId);
  const current = user?.saldo || 0;
 
@@ -494,7 +495,8 @@ class DatabaseManager {
  type: 'debito',
  userId: userId,
  amount: amount,
- reason: reason
+ reason: reason,
+ guildId: guildId
  });
 
  return true;

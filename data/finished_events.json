@@ -51,5 +51,48 @@
       "trancado": false,
       "messageId": "1484348847919730789"
     }
+  ],
+  [
+    "event_1774002438534_1276439186513203234",
+    {
+      "id": "event_1774002438534_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "dg grupo 8.4 - trench",
+      "descricao": "t8 arma",
+      "requisitos": "t8 arma",
+      "horario": "11:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1484498565513347144",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "Tmaiusculo",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1774002446623,
+            "tempoTotal": 1371900,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": "BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1774002449274,
+            "tempoTotal": 1369249,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1774002446623,
+      "finalizadoEm": 1774003818523,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1484498567614828554"
+    }
   ]
 ]
