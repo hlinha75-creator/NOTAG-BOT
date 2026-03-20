@@ -9,6 +9,18 @@ const {
 } = require('discord.js');
 const Database = require('../utils/database');
 
+const modalCooldowns = new Map();
+const MODAL_COOLDOWN_MS = 10000;
+
+function checkModalCooldown(userId, key) {
+  const mapKey = `${key}_${userId}`;
+  const now = Date.now();
+  const last = modalCooldowns.get(mapKey);
+  if (last && (now - last) < MODAL_COOLDOWN_MS) return false;
+  modalCooldowns.set(mapKey, now);
+  return true;
+}
+
 class FinanceHandler {
   constructor() {
     this.pendingWithdrawals = new Map();
@@ -42,6 +54,12 @@ class FinanceHandler {
   }
 
   static async processWithdrawRequest(interaction) {
+    if (!checkModalCooldown(interaction.user.id, 'saque')) {
+      return interaction.reply({
+        content: '⏳ Sua solicitação de saque já foi enviada. Aguarde alguns segundos.',
+        ephemeral: true
+      });
+    }
     try {
       const valorInput = interaction.fields.getTextInputValue('valor_saque').trim();
       const valorLimpo = valorInput.replace(/\./g, '').replace(/,/g, '');
@@ -359,6 +377,12 @@ class FinanceHandler {
   }
 
   static async processLoanRequest(interaction) {
+    if (!checkModalCooldown(interaction.user.id, 'emprestimo')) {
+      return interaction.reply({
+        content: '⏳ Sua solicitação de empréstimo já foi enviada. Aguarde alguns segundos.',
+        ephemeral: true
+      });
+    }
     try {
       const valorInput = interaction.fields.getTextInputValue('valor_emprestimo').trim();
       const valorLimpo = valorInput.replace(/\./g, '').replace(/,/g, '');
@@ -628,6 +652,12 @@ class FinanceHandler {
   }
 
   static async processLoanPaymentRequest(interaction) {
+    if (!checkModalCooldown(interaction.user.id, 'quitacao')) {
+      return interaction.reply({
+        content: '⏳ Sua solicitação de quitação já foi enviada. Aguarde alguns segundos.',
+        ephemeral: true
+      });
+    }
     try {
       const valorInput = interaction.fields.getTextInputValue('valor_quitacao').trim();
       const valorLimpo = valorInput.replace(/\./g, '').replace(/,/g, '');
@@ -948,6 +978,12 @@ class FinanceHandler {
   }
 
   static async processTransferRequest(interaction) {
+    if (!checkModalCooldown(interaction.user.id, 'transferencia')) {
+      return interaction.reply({
+        content: '⏳ Sua solicitação de transferência já foi enviada. Aguarde alguns segundos.',
+        ephemeral: true
+      });
+    }
     try {
       const userIdDestino = interaction.fields.getTextInputValue('id_usuario').trim();
       const valorInput = interaction.fields.getTextInputValue('valor_transferencia').trim();
