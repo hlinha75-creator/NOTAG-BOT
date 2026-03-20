@@ -11,6 +11,8 @@ const {
   PermissionFlagsBits,
   ChannelType
 } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 const Database = require('../utils/database');
 const XpHandler = require('./xpHandler');
 const XpEventHandler = require('./xpEventHandler');
@@ -119,6 +121,36 @@ class LootSplitHandler {
 
     } catch (error) {
       console.error('[LootSplit] Erro ao atualizar painel de saldo:', error);
+    }
+  }
+
+  // ==================== PERSISTÊNCIA DE SIMULAÇÕES ====================
+
+  static saveSimulations() {
+    try {
+      const dataDir = path.join(__dirname, '..', 'data');
+      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+      const arr = Array.from(global.simulations.entries());
+      fs.writeFileSync(
+        path.join(dataDir, 'simulations.json'),
+        JSON.stringify(arr, null, 2)
+      );
+    } catch (error) {
+      console.error('[LootSplit] Erro ao salvar simulações:', error);
+    }
+  }
+
+  static loadSimulations() {
+    try {
+      const filePath = path.join(__dirname, '..', 'data', 'simulations.json');
+      if (!fs.existsSync(filePath)) return;
+      const arr = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      for (const [id, data] of arr) {
+        global.simulations.set(id, data);
+      }
+      console.log(`✅ ${arr.length} simulações carregadas do arquivo.`);
+    } catch (error) {
+      console.error('[LootSplit] Erro ao carregar simulações:', error);
     }
   }
 
@@ -286,6 +318,7 @@ class LootSplitHandler {
 
       if (!global.simulations) global.simulations = new Map();
       global.simulations.set(simulationId, simulationData);
+      this.saveSimulations();
 
       console.log(`[LootSplit] Simulation ${simulationId} created. Base: ${valorBase} (Total: ${valorTotal} + Sacos: ${valorSacos} - Reparo: ${valorReparo})`);
       console.log(`[LootSplit] Taxa calculada: ${valorTaxa} (${taxaGuilda}%)`);
@@ -658,6 +691,7 @@ class LootSplitHandler {
 
       // Atualizar global
       global.simulations.set(simulationId, simulation);
+      this.saveSimulations();
 
       // Limpar temp
       global.lootTemp.delete(interaction.user.id);
@@ -893,6 +927,40 @@ class LootSplitHandler {
         return;
       }
 
+      // ==================== FLUXO DE RECUSA ====================
+      if (!aprovar) {
+        simulation.status = 'recusado';
+        simulation.recusadoPor = interaction.user.id;
+        simulation.recusadoEm = Date.now();
+        this.saveSimulations();
+
+        await interaction.editReply({
+          content: `❌ Depósito recusado por ${interaction.user.tag}. Nenhum valor foi distribuído.`,
+          components: []
+        });
+
+        const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
+        if (canalLogs) {
+          await canalLogs.send({
+            embeds: [
+              new EmbedBuilder()
+                .setTitle('📝 LOG: PAGAMENTO RECUSADO')
+                .setDescription(
+                  `**Evento:** ${simulation.eventId}\n` +
+                  `**Recusado por:** <@${interaction.user.id}>\n` +
+                  `**Valor Total (não distribuído):** \`${(simulation.valorTotal || 0).toLocaleString()}\`\n` +
+                  `**Data:** ${new Date().toLocaleString()}`
+                )
+                .setColor(0xE74C3C)
+                .setTimestamp()
+            ]
+          });
+        }
+
+        return;
+      }
+
+      // ==================== FLUXO DE APROVAÇÃO ====================
       console.log(`[LootSplit] Processando pagamento para guild: ${guildId}`);
 
       let sucessos = 0;
@@ -1239,6 +1307,7 @@ class LootSplitHandler {
 
       // Remover simulação da memória
       global.simulations.delete(simulationId);
+      this.saveSimulations();
 
       console.log(`[LootSplit] Evento arquivado. Total XP distribuído: ${totalXpDistribuido}`);
 

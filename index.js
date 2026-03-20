@@ -323,6 +323,7 @@ client.once(Events.ClientReady, async () => {
  await Database.initialize();
  RegistrationActions.initialize();
  EventHandler.initialize();
+ LootSplitHandler.loadSimulations();
  console.log('📝 Sistemas inicializados: Database + Registro + Eventos');
 
  // 💾 INICIALIZAR BACKUP DO GOOGLE DRIVE

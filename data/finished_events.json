@@ -1,0 +1,55 @@
+[
+  [
+    "event_1773966740896_539488665663963165",
+    {
+      "id": "event_1773966740896_539488665663963165",
+      "guildId": "1480232409105699030",
+      "nome": "bau azul",
+      "descricao": "vamos fazer bau azul sets t7",
+      "requisitos": "Nenhum",
+      "horario": "21:32",
+      "criadorId": "539488665663963165",
+      "criadorTag": "tnhitter",
+      "canalVozId": "1484348838499188859",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "539488665663963165",
+          {
+            "nick": "goncalves23",
+            "userId": "539488665663963165",
+            "tempoInicio": 1773966776043,
+            "tempoTotal": 2338344,
+            "pausado": false
+          }
+        ],
+        [
+          "1399915252744716301",
+          {
+            "nick": "SmithTezzyy",
+            "userId": "1399915252744716301",
+            "tempoInicio": 1773966779969,
+            "tempoTotal": 2327145,
+            "pausado": false
+          }
+        ],
+        [
+          "416755948389007364",
+          {
+            "nick": "buracaobama",
+            "userId": "416755948389007364",
+            "tempoInicio": 1773966789772,
+            "tempoTotal": 2317342,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1773966766019,
+      "finalizadoEm": 1773969107114,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1484348847919730789"
+    }
+  ]
+]
