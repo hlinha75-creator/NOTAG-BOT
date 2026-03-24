@@ -1,0 +1,448 @@
+[
+  [
+    "sim_1774214517874_event_1774164234675_1276439186513203234",
+    {
+      "id": "sim_1774214517874_event_1774164234675_1276439186513203234",
+      "eventId": "event_1774164234675_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "canalEventoId": "1485381634311061526",
+      "criadorId": "1276439186513203234",
+      "valorTotal": 24500000,
+      "valorSacos": 2000000,
+      "valorReparo": 500000,
+      "valorTaxa": 2600000,
+      "taxaGuilda": 10,
+      "valorDistribuir": 23400000,
+      "distribuicao": [
+        {
+          "userId": "899398727645687818",
+          "nick": "Jokker1998",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "1276439186513203234",
+          "nick": "Tmaiusculo",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "450421056503545866",
+          "nick": "charopecomch",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "1277808628320964701",
+          "nick": "Miihsaki",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "1399915252744716301",
+          "nick": "SmithTezzyy",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "1246520347193376808",
+          "nick": "Executador",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "484445694485331982",
+          "nick": "Raguinaroqui",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "875544664286064650",
+          "nick": "M1TO",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "715328489938616332",
+          "nick": "Vtracer",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "1318760627430232068",
+          "nick": "Sabedoria7",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "244264130234679296",
+          "nick": "Nagacaburos",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "275412641847967745",
+          "nick": "zNeii",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "334126478457307136",
+          "nick": "Cominhos",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "458026581361950780",
+          "nick": "BSAlGunner",
+          "tempo": 6430244,
+          "percentagem": "1.93",
+          "valor": 450487
+        },
+        {
+          "userId": "367435864894210049",
+          "nick": "killme",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "381493092886380555",
+          "nick": "Kristal5",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1373523
+        },
+        {
+          "userId": "326472856206835713",
+          "nick": "MonetaryMike",
+          "tempo": 37136,
+          "percentagem": "0.01",
+          "valor": 2601
+        },
+        {
+          "userId": "1030741062848880662",
+          "nick": "Morrty",
+          "tempo": 13013349,
+          "percentagem": "3.90",
+          "valor": 911684
+        },
+        {
+          "userId": "427599422839455745",
+          "nick": "Xiitos",
+          "tempo": 9625543,
+          "percentagem": "2.88",
+          "valor": 674342
+        },
+        {
+          "userId": "460471806944477185",
+          "nick": "zheeest",
+          "tempo": 9103488,
+          "percentagem": "2.73",
+          "valor": 637768
+        },
+        {
+          "userId": "1051902816131743775",
+          "nick": "jordansbxdfirma18",
+          "tempo": 1716651,
+          "percentagem": "0.51",
+          "valor": 120264
+        }
+      ],
+      "tempoTotalEvento": 19605620,
+      "eventoNome": "evento infinito",
+      "status": "simulado",
+      "timestamp": 1774214517874
+    }
+  ],
+  [
+    "sim_1774214655720_event_1774164234675_1276439186513203234",
+    {
+      "id": "sim_1774214655720_event_1774164234675_1276439186513203234",
+      "eventId": "event_1774164234675_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "canalEventoId": "1485381634311061526",
+      "criadorId": "1276439186513203234",
+      "valorTotal": 25000000,
+      "valorSacos": 1000000,
+      "valorReparo": 500000,
+      "valorTaxa": 5100000,
+      "taxaGuilda": 20,
+      "valorDistribuir": 20400000,
+      "distribuicao": [
+        {
+          "userId": "899398727645687818",
+          "nick": "Jokker1998",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "1276439186513203234",
+          "nick": "Tmaiusculo",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "450421056503545866",
+          "nick": "charopecomch",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "1277808628320964701",
+          "nick": "Miihsaki",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "1399915252744716301",
+          "nick": "SmithTezzyy",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "1246520347193376808",
+          "nick": "Executador",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "484445694485331982",
+          "nick": "Raguinaroqui",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "875544664286064650",
+          "nick": "M1TO",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "715328489938616332",
+          "nick": "Vtracer",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "1318760627430232068",
+          "nick": "Sabedoria7",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "244264130234679296",
+          "nick": "Nagacaburos",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "275412641847967745",
+          "nick": "zNeii",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "334126478457307136",
+          "nick": "Cominhos",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "458026581361950780",
+          "nick": "BSAlGunner",
+          "tempo": 6430244,
+          "percentagem": "1.93",
+          "valor": 392732
+        },
+        {
+          "userId": "367435864894210049",
+          "nick": "killme",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "381493092886380555",
+          "nick": "Kristal5",
+          "tempo": 19605620,
+          "percentagem": "5.87",
+          "valor": 1197430
+        },
+        {
+          "userId": "326472856206835713",
+          "nick": "MonetaryMike",
+          "tempo": 37136,
+          "percentagem": "0.01",
+          "valor": 2268
+        },
+        {
+          "userId": "1030741062848880662",
+          "nick": "Morrty",
+          "tempo": 13013349,
+          "percentagem": "3.90",
+          "valor": 794801
+        },
+        {
+          "userId": "427599422839455745",
+          "nick": "Xiitos",
+          "tempo": 9625543,
+          "percentagem": "2.88",
+          "valor": 587888
+        },
+        {
+          "userId": "460471806944477185",
+          "nick": "zheeest",
+          "tempo": 9103488,
+          "percentagem": "2.73",
+          "valor": 556003
+        },
+        {
+          "userId": "1051902816131743775",
+          "nick": "jordansbxdfirma18",
+          "tempo": 1716651,
+          "percentagem": "0.51",
+          "valor": 104845
+        }
+      ],
+      "tempoTotalEvento": 19605620,
+      "eventoNome": "evento infinito",
+      "status": "pago",
+      "timestamp": 1774214655720,
+      "aprovadoPor": "1276439186513203234",
+      "aprovadoEm": 1774214699092
+    }
+  ],
+  [
+    "sim_1774222237583_event_1774215268887_1276439186513203234",
+    {
+      "id": "sim_1774222237583_event_1774215268887_1276439186513203234",
+      "eventId": "event_1774215268887_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "canalEventoId": "1485420185707085864",
+      "criadorId": "1276439186513203234",
+      "valorTotal": 8400000,
+      "valorSacos": 3000000,
+      "valorReparo": 300000,
+      "valorTaxa": 1110000,
+      "taxaGuilda": 10,
+      "valorDistribuir": 9990000,
+      "distribuicao": [
+        {
+          "userId": "1276439186513203234",
+          "nick": "Tmaiusculo",
+          "tempo": 6890078,
+          "percentagem": "9.09",
+          "valor": 907727
+        },
+        {
+          "userId": "458026581361950780",
+          "nick": "BSAlGunner",
+          "tempo": 6890078,
+          "percentagem": "9.09",
+          "valor": 907727
+        },
+        {
+          "userId": "638458906716143637",
+          "nick": "MachoAlpha",
+          "tempo": 6890078,
+          "percentagem": "9.09",
+          "valor": 907727
+        },
+        {
+          "userId": "698204412342173816",
+          "nick": "avven1996",
+          "tempo": 6887832,
+          "percentagem": "9.08",
+          "valor": 907431
+        },
+        {
+          "userId": "367435864894210049",
+          "nick": "killme",
+          "tempo": 6887328,
+          "percentagem": "9.08",
+          "valor": 907365
+        },
+        {
+          "userId": "1318760627430232068",
+          "nick": "Sabedoria7",
+          "tempo": 6885828,
+          "percentagem": "9.08",
+          "valor": 907167
+        },
+        {
+          "userId": "539488665663963165",
+          "nick": "goncalves23",
+          "tempo": 791799,
+          "percentagem": "1.04",
+          "valor": 104314
+        },
+        {
+          "userId": "334126478457307136",
+          "nick": "Cominhos",
+          "tempo": 6882378,
+          "percentagem": "9.08",
+          "valor": 906713
+        },
+        {
+          "userId": "427599422839455745",
+          "nick": "Xiitos",
+          "tempo": 6879607,
+          "percentagem": "9.07",
+          "valor": 906348
+        },
+        {
+          "userId": "899398727645687818",
+          "nick": "Jokker1998",
+          "tempo": 6872089,
+          "percentagem": "9.06",
+          "valor": 905357
+        },
+        {
+          "userId": "715328489938616332",
+          "nick": "Vtracer",
+          "tempo": 6638323,
+          "percentagem": "8.75",
+          "valor": 874560
+        },
+        {
+          "userId": "400497884648177665",
+          "nick": "Davimix",
+          "tempo": 6433361,
+          "percentagem": "8.48",
+          "valor": 847557
+        }
+      ],
+      "tempoTotalEvento": 6890078,
+      "eventoNome": "raid 1650 ip",
+      "status": "simulado",
+      "timestamp": 1774222237583
+    }
+  ]
+]

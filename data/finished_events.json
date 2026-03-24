@@ -94,5 +94,381 @@
       "trancado": false,
       "messageId": "1484498567614828554"
     }
+  ],
+  [
+    "event_1774164234675_1276439186513203234",
+    {
+      "id": "event_1774164234675_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "evento infinito",
+      "descricao": "fazendo qualquer coisa pra sliptar no final",
+      "requisitos": "4.1 +",
+      "horario": "07:30",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1485177187610132480",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "1276439186513203234",
+          {
+            "nick": "Tmaiusculo",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "450421056503545866",
+          {
+            "nick": "charopecomch",
+            "userId": "450421056503545866",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "1277808628320964701",
+          {
+            "nick": "Miihsaki",
+            "userId": "1277808628320964701",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "1399915252744716301",
+          {
+            "nick": "SmithTezzyy",
+            "userId": "1399915252744716301",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "1246520347193376808",
+          {
+            "nick": "Executador",
+            "userId": "1246520347193376808",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "484445694485331982",
+          {
+            "nick": "Raguinaroqui",
+            "userId": "484445694485331982",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "875544664286064650",
+          {
+            "nick": "M1TO",
+            "userId": "875544664286064650",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "715328489938616332",
+          {
+            "nick": "Vtracer",
+            "userId": "715328489938616332",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "1318760627430232068",
+          {
+            "nick": "Sabedoria7",
+            "userId": "1318760627430232068",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "244264130234679296",
+          {
+            "nick": "Nagacaburos",
+            "userId": "244264130234679296",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": "BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": null,
+            "tempoTotal": 6430244,
+            "pausado": true
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": "killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "381493092886380555",
+          {
+            "nick": "Kristal5",
+            "userId": "381493092886380555",
+            "tempoInicio": 1774193371092,
+            "tempoTotal": 19605620,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": "MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": null,
+            "tempoTotal": 37136,
+            "pausado": true
+          }
+        ],
+        [
+          "1030741062848880662",
+          {
+            "nick": "Morrty",
+            "userId": "1030741062848880662",
+            "tempoInicio": 1774199963363,
+            "tempoTotal": 13013349,
+            "pausado": false
+          }
+        ],
+        [
+          "427599422839455745",
+          {
+            "nick": "Xiitos",
+            "userId": "427599422839455745",
+            "tempoInicio": 1774203351169,
+            "tempoTotal": 9625543,
+            "pausado": false
+          }
+        ],
+        [
+          "460471806944477185",
+          {
+            "nick": "zheeest",
+            "userId": "460471806944477185",
+            "tempoInicio": 1774203873224,
+            "tempoTotal": 9103488,
+            "pausado": false
+          }
+        ],
+        [
+          "1051902816131743775",
+          {
+            "nick": "jordansbxdfirma18",
+            "userId": "1051902816131743775",
+            "tempoInicio": 1774211260061,
+            "tempoTotal": 1716651,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1774193371092,
+      "finalizadoEm": 1774212976712,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1485177190130782268"
+    }
+  ],
+  [
+    "event_1774215268887_1276439186513203234",
+    {
+      "id": "event_1774215268887_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "raid 1650 ip",
+      "descricao": "raid 1650 ip",
+      "requisitos": "raid 1650 ip",
+      "horario": "21:30",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1485391240639021069",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "Tmaiusculo",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1774215278088,
+            "tempoTotal": 6890078,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": "BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1774215278088,
+            "tempoTotal": 6890078,
+            "pausado": false
+          }
+        ],
+        [
+          "638458906716143637",
+          {
+            "nick": "MachoAlpha",
+            "userId": "638458906716143637",
+            "tempoInicio": 1774215278088,
+            "tempoTotal": 6890078,
+            "pausado": false
+          }
+        ],
+        [
+          "698204412342173816",
+          {
+            "nick": "avven1996",
+            "userId": "698204412342173816",
+            "tempoInicio": 1774215280334,
+            "tempoTotal": 6887832,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": "killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1774215280838,
+            "tempoTotal": 6887328,
+            "pausado": false
+          }
+        ],
+        [
+          "1318760627430232068",
+          {
+            "nick": "Sabedoria7",
+            "userId": "1318760627430232068",
+            "tempoInicio": 1774215282338,
+            "tempoTotal": 6885828,
+            "pausado": false
+          }
+        ],
+        [
+          "539488665663963165",
+          {
+            "nick": "goncalves23",
+            "userId": "539488665663963165",
+            "tempoInicio": null,
+            "tempoTotal": 791799,
+            "pausado": true
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1774215285788,
+            "tempoTotal": 6882378,
+            "pausado": false
+          }
+        ],
+        [
+          "427599422839455745",
+          {
+            "nick": "Xiitos",
+            "userId": "427599422839455745",
+            "tempoInicio": 1774215288559,
+            "tempoTotal": 6879607,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1774215296077,
+            "tempoTotal": 6872089,
+            "pausado": false
+          }
+        ],
+        [
+          "715328489938616332",
+          {
+            "nick": "Vtracer",
+            "userId": "715328489938616332",
+            "tempoInicio": 1774215529843,
+            "tempoTotal": 6638323,
+            "pausado": false
+          }
+        ],
+        [
+          "400497884648177665",
+          {
+            "nick": "Davimix",
+            "userId": "400497884648177665",
+            "tempoInicio": 1774215741651,
+            "tempoTotal": 6433361,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1774215278088,
+      "finalizadoEm": 1774222168166,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1485391243243421899"
+    }
   ]
 ]

@@ -1,1 +1,85 @@
-[]
+[
+  [
+    "event_1774223109004_400497884648177665",
+    {
+      "id": "event_1774223109004_400497884648177665",
+      "guildId": "1480232409105699030",
+      "nome": "Aranha",
+      "descricao": "Ly",
+      "requisitos": "Nenhum",
+      "horario": "22",
+      "criadorId": "400497884648177665",
+      "criadorTag": "davi_weberr",
+      "canalVozId": "1485424124540223679",
+      "canalTextoId": "1481397657065754797",
+      "status": "aguardando",
+      "participantes": [
+        [
+          "1318760627430232068",
+          {
+            "nick": "Sabedoria7",
+            "userId": "1318760627430232068",
+            "tempoInicio": null,
+            "tempoTotal": 0,
+            "pausado": false
+          }
+        ],
+        [
+          "889485724699746324",
+          {
+            "nick": "Spotk",
+            "userId": "889485724699746324",
+            "tempoInicio": null,
+            "tempoTotal": 0,
+            "pausado": false
+          }
+        ],
+        [
+          "400497884648177665",
+          {
+            "nick": "Davimix",
+            "userId": "400497884648177665",
+            "tempoInicio": null,
+            "tempoTotal": 0,
+            "pausado": false
+          }
+        ],
+        [
+          "450421056503545866",
+          {
+            "nick": "charopecomch",
+            "userId": "450421056503545866",
+            "tempoInicio": null,
+            "tempoTotal": 0,
+            "pausado": false
+          }
+        ],
+        [
+          "1399915252744716301",
+          {
+            "nick": "SmithTezzyy",
+            "userId": "1399915252744716301",
+            "tempoInicio": null,
+            "tempoTotal": 0,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": null,
+            "tempoTotal": 0,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": null,
+      "finalizadoEm": null,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1485424126641307799"
+    }
+  ]
+]
