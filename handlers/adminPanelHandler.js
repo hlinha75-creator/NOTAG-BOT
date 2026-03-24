@@ -22,14 +22,27 @@ class AdminPanelHandler {
     try {
       const botMember = guild.members.me;
 
-      const categoryName = 'gestão de membros';
+      const channelSlug = 'painel-administrativo';
+
+      // Verificar se o canal já existe em qualquer lugar da guild (evita duplicatas entre reinícios)
+      const existingAnywhere = guild.channels.cache.find(
+        c => c.name === channelSlug && c.type === ChannelType.GuildText
+      );
+      if (existingAnywhere) {
+        console.log(`[AdminPanel] Canal "${channelSlug}" já existe na guild ${guild.name}.`);
+        return existingAnywhere;
+      }
+
+      // Buscar categoria "gestão de guilda" (parcial e case-insensitive para tolerar emojis e maiúsculas)
       let category = guild.channels.cache.find(
-        c => c.name.toLowerCase() === categoryName && c.type === ChannelType.GuildCategory
+        c => c.type === ChannelType.GuildCategory &&
+             c.name.toLowerCase().includes('gestão de guilda')
       );
 
       if (!category) {
+        // Fallback: criar categoria própria apenas se não existir nenhuma "gestão de guilda"
         category = await guild.channels.create({
-          name: 'gestão de membros',
+          name: 'gestão de guilda',
           type: ChannelType.GuildCategory,
           permissionOverwrites: [
             {
@@ -47,17 +60,7 @@ class AdminPanelHandler {
             }
           ]
         });
-        console.log(`[AdminPanel] Categoria "gestão de membros" criada.`);
-      }
-
-      const channelName = 'painel administrativo';
-      const existingChannel = guild.channels.cache.find(
-        c => c.name === channelName && c.parentId === category.id
-      );
-
-      if (existingChannel) {
-        console.log(`[AdminPanel] Canal "${channelName}" já existe.`);
-        return existingChannel;
+        console.log(`[AdminPanel] Categoria "gestão de guilda" criada.`);
       }
 
       const admRole = guild.roles.cache.find(r => r.name === 'ADM');
@@ -95,14 +98,14 @@ class AdminPanelHandler {
       }
 
       const channel = await guild.channels.create({
-        name: channelName,
+        name: channelSlug,
         type: ChannelType.GuildText,
         parent: category.id,
         topic: '🛡️ Painel Administrativo — Ferramentas exclusivas para ADM e Staff',
         permissionOverwrites: permOverwrites
       });
 
-      console.log(`[AdminPanel] Canal "${channelName}" criado: ${channel.id}`);
+      console.log(`[AdminPanel] Canal "${channelSlug}" criado: ${channel.id}`);
       await AdminPanelHandler.sendPanel(channel);
       return channel;
 
