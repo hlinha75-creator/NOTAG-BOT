@@ -1122,20 +1122,39 @@ class LootSplitHandler {
   // ==================== ARQUIVAR EVENTO (CORRIGIDO) ====================
 
   static async handleArquivar(interaction, eventId, simulationId) {
+    const canalEventoId = interaction.channelId;
+    const guildRef = interaction.guild;
+
+    const deletarCanal = () => {
+      setTimeout(async () => {
+        try {
+          const canalParaDeletar = guildRef.channels.cache.get(canalEventoId)
+            || await guildRef.channels.fetch(canalEventoId).catch(() => null);
+          if (canalParaDeletar) {
+            await canalParaDeletar.delete('Evento arquivado');
+            console.log(`[LootSplit] Canal do evento deletado: ${canalEventoId}`);
+          } else {
+            console.warn(`[LootSplit] Canal ${canalEventoId} não encontrado para deletar.`);
+          }
+        } catch (e) {
+          console.error('[LootSplit] Erro ao deletar canal do evento:', e);
+        }
+      }, 10000);
+    };
+
     try {
       console.log(`[LootSplit] Archiving event ${eventId} with simulation ${simulationId}`);
 
       const simulation = global.simulations?.get(simulationId);
       if (!simulation) {
-        // Verificar se já foi respondido
-        if (!interaction.replied && !interaction.deferred) {
-          return interaction.reply({
-            content: '❌ Simulação não encontrada! O evento já pode ter sido arquivado.',
-            ephemeral: true
-          });
-        }
+        await interaction.reply({
+          content: '❌ Simulação não encontrada! O evento já pode ter sido arquivado.',
+          ephemeral: true
+        });
         return;
       }
+
+      await interaction.deferReply({ ephemeral: false });
 
       // Determinar se é Raid Avalon ou Evento Normal
       const eventData = global.finishedEvents?.get(simulation.eventId) || global.activeEvents?.get(simulation.eventId);
@@ -1249,40 +1268,9 @@ class LootSplitHandler {
         .setColor(isRaidAvalon ? 0x9B59B6 : 0x3498DB)
         .setTimestamp();
 
-      // ✅ CORREÇÃO: Usar reply em vez de update, e deletar canal após responder
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({
-          content: '',
-          embeds: [embedArquivamento],
-          ephemeral: false
-        });
-      } else if (interaction.deferred && !interaction.replied) {
-        await interaction.followUp({
-          content: '',
-          embeds: [embedArquivamento],
-          ephemeral: false
-        });
-      } else {
-        await interaction.channel.send({ embeds: [embedArquivamento] });
-      }
+      await interaction.editReply({ embeds: [embedArquivamento] });
 
-      // Deletar canal após 10 segundos
-      const canalEventoId = interaction.channelId;
-      const guildRef = interaction.guild;
-      setTimeout(async () => {
-        try {
-          const canalParaDeletar = guildRef.channels.cache.get(canalEventoId)
-            || await guildRef.channels.fetch(canalEventoId).catch(() => null);
-          if (canalParaDeletar) {
-            await canalParaDeletar.delete('Evento arquivado');
-            console.log(`[LootSplit] Canal do evento deletado: ${canalEventoId}`);
-          } else {
-            console.warn(`[LootSplit] Canal ${canalEventoId} não encontrado para deletar.`);
-          }
-        } catch (e) {
-          console.error('[LootSplit] Erro ao deletar canal do evento:', e);
-        }
-      }, 10000);
+      deletarCanal();
 
       // Log no canal de logs
       const canalLogs = interaction.guild.channels.cache.find(c => c.name === '📜╠logs-banco');
@@ -1314,18 +1302,17 @@ class LootSplitHandler {
     } catch (error) {
       console.error(`[LootSplit] Error archiving event:`, error);
 
-      // ✅ CORREÇÃO: Verificar se já respondeu antes de tentar responder novamente
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({
-          content: '❌ Erro ao arquivar evento.',
-          ephemeral: true
-        });
-      } else if (interaction.deferred && !interaction.replied) {
-        await interaction.followUp({
-          content: '❌ Erro ao arquivar evento.',
-          ephemeral: true
-        });
+      try {
+        if (interaction.deferred || interaction.replied) {
+          await interaction.editReply({ content: '❌ Erro ao arquivar evento.', embeds: [] });
+        } else {
+          await interaction.reply({ content: '❌ Erro ao arquivar evento.', ephemeral: true });
+        }
+      } catch (replyErr) {
+        console.error('[LootSplit] Não foi possível responder ao arquivar:', replyErr.message);
       }
+
+      deletarCanal();
     }
   }
 }
