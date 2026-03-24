@@ -218,6 +218,7 @@ const KillboardHandler = require('./handlers/killboardHandler');
 const MarketHandler = require('./handlers/marketHandler');
 const MarketApi = require('./handlers/albionMarketApi');
 const BalancePanelHandler = require('./handlers/balancePanelHandler');
+const AdminPanelHandler = require('./handlers/adminPanelHandler');
 
 // ==================== IMPORTAR COMANDOS ====================
 const instalarCommand = require('./commands/instalar');
@@ -228,6 +229,7 @@ const limparSaldoCommand = require('./commands/limpar-saldo');
 const limparXpCommand = require('./commands/limpar-xp');
 const ajudaCommand = require('./commands/ajuda');
 const killboardCommand = require('./commands/killboard');
+const saldosCommand = require('./commands/saldos');
 
 // Criar cliente
 const client = new Client({
@@ -255,6 +257,7 @@ client.commands.set(limparSaldoCommand.data.name, limparSaldoCommand);
 client.commands.set(limparXpCommand.data.name, limparXpCommand);
 client.commands.set(ajudaCommand.data.name, ajudaCommand);
 client.commands.set(killboardCommand.data.name, killboardCommand);
+client.commands.set(saldosCommand.data.name, saldosCommand);
 
 // ==================== INICIALIZAR VARIÁVEIS GLOBAIS ====================
 global.registrosPendentes = new Map();
@@ -326,6 +329,15 @@ client.once(Events.ClientReady, async () => {
  LootSplitHandler.loadSimulations();
  console.log('📝 Sistemas inicializados: Database + Registro + Eventos');
 
+ // Criar canal do painel administrativo em todas as guilds configuradas
+ for (const guild of client.guilds.cache.values()) {
+ try {
+ await AdminPanelHandler.setupChannel(guild);
+ } catch (err) {
+ console.error(`❌ Erro ao configurar painel admin na guild ${guild.name}:`, err.message);
+ }
+ }
+
  // 💾 INICIALIZAR BACKUP DO GOOGLE DRIVE
  await driveBackup.initialize();
 
@@ -381,7 +393,8 @@ client.once(Events.ClientReady, async () => {
  limparSaldoCommand.data.toJSON(),
  limparXpCommand.data.toJSON(),
  ajudaCommand.data.toJSON(),
- killboardCommand.data.toJSON()
+ killboardCommand.data.toJSON(),
+ saldosCommand.data.toJSON()
  ];
 
  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
@@ -1043,6 +1056,39 @@ client.on(Events.InteractionCreate, async interaction => {
  return;
  }
 
+ // PAINEL ADMINISTRATIVO
+ if (customId === 'adm_confiscar_saldo') {
+ await AdminPanelHandler.handleConfiscarSaldo(interaction);
+ return;
+ }
+
+ if (customId === 'adm_confiscar_select_users') {
+ await AdminPanelHandler.openUserSelect(interaction);
+ return;
+ }
+
+ if (customId === 'adm_confiscar_clear') {
+ await AdminPanelHandler.clearSelection(interaction);
+ return;
+ }
+
+ if (customId === 'adm_confiscar_proceed') {
+ await AdminPanelHandler.openValorModal(interaction);
+ return;
+ }
+
+ if (customId.startsWith('adm_confiscar_confirm_')) {
+ const confiscoId = customId.replace('adm_confiscar_confirm_', '');
+ await AdminPanelHandler.executeConfisco(interaction, confiscoId);
+ return;
+ }
+
+ if (customId.startsWith('adm_confiscar_cancel_')) {
+ const confiscoId = customId.replace('adm_confiscar_cancel_', '');
+ await AdminPanelHandler.cancelConfisco(interaction, confiscoId);
+ return;
+ }
+
  // FINANCEIRO — confirmações (recusas já tratadas acima, antes do loot split)
  if (customId.startsWith('fin_confirmar_saque_')) {
  const withdrawalId = customId.replace('fin_confirmar_saque_', '');
@@ -1419,6 +1465,12 @@ client.on(Events.InteractionCreate, async interaction => {
  await DepositHandler.processUserSelection(interaction);
  return;
  }
+
+ // PAINEL ADMINISTRATIVO - Seleção de jogadores para confisco
+ if (interaction.customId === 'adm_confiscar_users_menu') {
+ await AdminPanelHandler.processUserSelection(interaction);
+ return;
+ }
  }
 
  // MODALS
@@ -1525,6 +1577,11 @@ client.on(Events.InteractionCreate, async interaction => {
 
  if (interaction.customId === 'modal_transferir_saldo') {
  await FinanceHandler.processTransferRequest(interaction);
+ return;
+ }
+
+ if (interaction.customId === 'modal_adm_confiscar_valor') {
+ await AdminPanelHandler.processValorModal(interaction);
  return;
  }
 
