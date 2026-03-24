@@ -444,5 +444,83 @@
       "status": "simulado",
       "timestamp": 1774222237583
     }
+  ],
+  [
+    "sim_1774382536279_event_1774370404263_1276439186513203234",
+    {
+      "id": "sim_1774382536279_event_1774370404263_1276439186513203234",
+      "eventId": "event_1774370404263_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "canalEventoId": "1486091561422029012",
+      "criadorId": "1276439186513203234",
+      "valorTotal": 7000000,
+      "valorSacos": 0,
+      "valorReparo": 0,
+      "valorTaxa": 700000,
+      "taxaGuilda": 10,
+      "valorDistribuir": 6300000,
+      "distribuicao": [
+        {
+          "userId": "1276439186513203234",
+          "nick": "Tmaiusculo",
+          "tempo": 11815042,
+          "percentagem": "15.35",
+          "valor": 966822
+        },
+        {
+          "userId": "244264130234679296",
+          "nick": "Nagacaburos",
+          "tempo": 11807957,
+          "percentagem": "15.34",
+          "valor": 966242
+        },
+        {
+          "userId": "1277808628320964701",
+          "nick": "Miihsaki",
+          "tempo": 11803925,
+          "percentagem": "15.33",
+          "valor": 965912
+        },
+        {
+          "userId": "484445694485331982",
+          "nick": "Raguinaroqui",
+          "tempo": 11799955,
+          "percentagem": "15.33",
+          "valor": 965587
+        },
+        {
+          "userId": "427599422839455745",
+          "nick": "Xiitos",
+          "tempo": 11798325,
+          "percentagem": "15.32",
+          "valor": 965454
+        },
+        {
+          "userId": "621883156697579541",
+          "nick": "MargitOmen",
+          "tempo": 11792719,
+          "percentagem": "15.32",
+          "valor": 964995
+        },
+        {
+          "userId": "458026581361950780",
+          "nick": "BSAlGunner",
+          "tempo": 6108050,
+          "percentagem": "7.93",
+          "valor": 499820
+        },
+        {
+          "userId": "899398727645687818",
+          "nick": "Jokker1998",
+          "tempo": 63110,
+          "percentagem": "0.08",
+          "valor": 5164
+        }
+      ],
+      "tempoTotalEvento": 11815042,
+      "eventoNome": "azul 4.2",
+      "status": "simulado",
+      "timestamp": 1774382536279
+    }
   ]
 ]

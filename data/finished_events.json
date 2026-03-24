@@ -553,5 +553,171 @@
       "trancado": false,
       "messageId": "1485424126641307799"
     }
+  ],
+  [
+    "event_1774350057787_1276439186513203234",
+    {
+      "id": "event_1774350057787_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Transporte Infinito",
+      "descricao": "Vou dedicar o dia de hoje (com Staff) para zerar os transportes das HO",
+      "requisitos": "8.4 encantado energizado",
+      "horario": "12:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1485956585980432398",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "Tmaiusculo",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1774350079870,
+            "tempoTotal": 20335209,
+            "pausado": false
+          }
+        ],
+        [
+          "715328489938616332",
+          {
+            "nick": "Vtracer",
+            "userId": "715328489938616332",
+            "tempoInicio": 1774351118227,
+            "tempoTotal": 19296852,
+            "pausado": false
+          }
+        ],
+        [
+          "1277808628320964701",
+          {
+            "nick": "Miihsaki",
+            "userId": "1277808628320964701",
+            "tempoInicio": 1774352339099,
+            "tempoTotal": 18075980,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1774353778271,
+            "tempoTotal": 16636808,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1774350079870,
+      "finalizadoEm": 1774370415079,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1485956595350241331"
+    }
+  ],
+  [
+    "event_1774370404263_1276439186513203234",
+    {
+      "id": "event_1774370404263_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "azul 4.2",
+      "descricao": "azul 4.2",
+      "requisitos": "azul 4.2",
+      "horario": "16:45",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1486041925764251839",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "Tmaiusculo",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1774370422393,
+            "tempoTotal": 11815042,
+            "pausado": false
+          }
+        ],
+        [
+          "244264130234679296",
+          {
+            "nick": "Nagacaburos",
+            "userId": "244264130234679296",
+            "tempoInicio": 1774370429478,
+            "tempoTotal": 11807957,
+            "pausado": false
+          }
+        ],
+        [
+          "1277808628320964701",
+          {
+            "nick": "Miihsaki",
+            "userId": "1277808628320964701",
+            "tempoInicio": 1774370433510,
+            "tempoTotal": 11803925,
+            "pausado": false
+          }
+        ],
+        [
+          "484445694485331982",
+          {
+            "nick": "Raguinaroqui",
+            "userId": "484445694485331982",
+            "tempoInicio": 1774370437480,
+            "tempoTotal": 11799955,
+            "pausado": false
+          }
+        ],
+        [
+          "427599422839455745",
+          {
+            "nick": "Xiitos",
+            "userId": "427599422839455745",
+            "tempoInicio": 1774370439110,
+            "tempoTotal": 11798325,
+            "pausado": false
+          }
+        ],
+        [
+          "621883156697579541",
+          {
+            "nick": "MargitOmen",
+            "userId": "621883156697579541",
+            "tempoInicio": 1774370444716,
+            "tempoTotal": 11792719,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": "BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1774376132392,
+            "tempoTotal": 6108050,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": null,
+            "tempoTotal": 63110,
+            "pausado": true
+          }
+        ]
+      ],
+      "inicioTimestamp": 1774370422393,
+      "finalizadoEm": 1774382237435,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1486041928226050059"
+    }
   ]
 ]
