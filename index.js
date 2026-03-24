@@ -1695,6 +1695,16 @@ process.on('SIGTERM', async () => {
  process.exit();
 });
 
+// SERVIDOR HTTP — keepalive para o deploy (Replit VM exige porta aberta)
+const http = require('http');
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+ res.writeHead(200, { 'Content-Type': 'text/plain' });
+ res.end('BOT_NOTAG online\n');
+}).listen(PORT, '0.0.0.0', () => {
+ console.log(`🌐 Servidor keepalive rodando na porta ${PORT}`);
+});
+
 // LOGIN DO BOT
 client.login(process.env.TOKEN).then(() => {
  console.log('🔐 Login realizado com sucesso');
