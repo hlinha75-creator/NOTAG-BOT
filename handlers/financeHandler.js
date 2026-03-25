@@ -8,9 +8,62 @@ const {
   TextInputStyle
 } = require('discord.js');
 const Database = require('../utils/database');
+const fs = require('fs');
+const path = require('path');
+
+const PENDING_FILE = path.join(__dirname, '..', 'data', 'pending_finance.json');
+
+function savePendingFinance() {
+  try {
+    const data = {
+      withdrawals: Object.fromEntries(global.pendingWithdrawals || []),
+      loans: Object.fromEntries(global.pendingLoans || []),
+      loanPayments: Object.fromEntries(global.pendingLoanPayments || []),
+      transfers: Object.fromEntries(global.pendingTransfers || [])
+    };
+    fs.writeFileSync(PENDING_FILE, JSON.stringify(data, null, 2));
+  } catch (e) {
+    console.error('[Finance] Erro ao salvar pendências:', e.message);
+  }
+}
+
+function loadPendingFinance() {
+  try {
+    if (!fs.existsSync(PENDING_FILE)) return;
+    const raw = fs.readFileSync(PENDING_FILE, 'utf8');
+    const data = JSON.parse(raw);
+    if (data.withdrawals) {
+      for (const [k, v] of Object.entries(data.withdrawals)) {
+        if (v.status === 'pendente') (global.pendingWithdrawals = global.pendingWithdrawals || new Map()).set(k, v);
+      }
+    }
+    if (data.loans) {
+      for (const [k, v] of Object.entries(data.loans)) {
+        if (v.status === 'pendente') (global.pendingLoans = global.pendingLoans || new Map()).set(k, v);
+      }
+    }
+    if (data.loanPayments) {
+      for (const [k, v] of Object.entries(data.loanPayments)) {
+        if (v.status === 'pendente') (global.pendingLoanPayments = global.pendingLoanPayments || new Map()).set(k, v);
+      }
+    }
+    if (data.transfers) {
+      for (const [k, v] of Object.entries(data.transfers)) {
+        if (v.status === 'pendente') (global.pendingTransfers = global.pendingTransfers || new Map()).set(k, v);
+      }
+    }
+    const total = (global.pendingWithdrawals?.size || 0) + (global.pendingLoans?.size || 0) +
+      (global.pendingLoanPayments?.size || 0) + (global.pendingTransfers?.size || 0);
+    if (total > 0) console.log(`[Finance] ${total} pendências financeiras carregadas do arquivo.`);
+  } catch (e) {
+    console.error('[Finance] Erro ao carregar pendências:', e.message);
+  }
+}
 
 const modalCooldowns = new Map();
 const MODAL_COOLDOWN_MS = 10000;
+
+const processedInteractionIds = new Set();
 
 function checkModalCooldown(userId, key) {
   const mapKey = `${key}_${userId}`;
@@ -18,6 +71,16 @@ function checkModalCooldown(userId, key) {
   const last = modalCooldowns.get(mapKey);
   if (last && (now - last) < MODAL_COOLDOWN_MS) return false;
   modalCooldowns.set(mapKey, now);
+  return true;
+}
+
+function deduplicateInteraction(interactionId) {
+  if (processedInteractionIds.has(interactionId)) return false;
+  processedInteractionIds.add(interactionId);
+  if (processedInteractionIds.size > 500) {
+    const first = processedInteractionIds.values().next().value;
+    processedInteractionIds.delete(first);
+  }
   return true;
 }
 
@@ -54,6 +117,7 @@ class FinanceHandler {
   }
 
   static async processWithdrawRequest(interaction) {
+    if (!deduplicateInteraction(interaction.id)) return;
     if (!checkModalCooldown(interaction.user.id, 'saque')) {
       return interaction.reply({
         content: '⏳ Sua solicitação de saque já foi enviada. Aguarde alguns segundos.',
@@ -102,6 +166,7 @@ class FinanceHandler {
 
       if (!global.pendingWithdrawals) global.pendingWithdrawals = new Map();
       global.pendingWithdrawals.set(withdrawalId, withdrawalData);
+      savePendingFinance();
 
       console.log(`[Finance] Withdrawal request ${withdrawalId} created by ${interaction.user.id} for ${valor}`);
 
@@ -204,6 +269,7 @@ class FinanceHandler {
       withdrawal.status = 'aprovado';
       withdrawal.aprovadoPor = interaction.user.id;
       withdrawal.aprovadoEm = Date.now();
+      savePendingFinance();
 
       try {
         const user = await interaction.client.users.fetch(withdrawal.userId);
@@ -311,6 +377,7 @@ class FinanceHandler {
       withdrawal.status = 'recusado';
       withdrawal.motivoRecusa = motivo;
       withdrawal.recusadoPor = interaction.user.id;
+      savePendingFinance();
 
       try {
         const user = await interaction.client.users.fetch(withdrawal.userId);
@@ -377,6 +444,7 @@ class FinanceHandler {
   }
 
   static async processLoanRequest(interaction) {
+    if (!deduplicateInteraction(interaction.id)) return;
     if (!checkModalCooldown(interaction.user.id, 'emprestimo')) {
       return interaction.reply({
         content: '⏳ Sua solicitação de empréstimo já foi enviada. Aguarde alguns segundos.',
@@ -408,6 +476,7 @@ class FinanceHandler {
 
       if (!global.pendingLoans) global.pendingLoans = new Map();
       global.pendingLoans.set(loanId, loanData);
+      savePendingFinance();
 
       console.log(`[Finance] Loan request ${loanId} created by ${interaction.user.id} for ${valor}`);
 
@@ -652,6 +721,7 @@ class FinanceHandler {
   }
 
   static async processLoanPaymentRequest(interaction) {
+    if (!deduplicateInteraction(interaction.id)) return;
     if (!checkModalCooldown(interaction.user.id, 'quitacao')) {
       return interaction.reply({
         content: '⏳ Sua solicitação de quitação já foi enviada. Aguarde alguns segundos.',
@@ -717,6 +787,7 @@ class FinanceHandler {
 
       if (!global.pendingLoanPayments) global.pendingLoanPayments = new Map();
       global.pendingLoanPayments.set(paymentId, paymentData);
+      savePendingFinance();
 
       console.log(`[Finance] Loan payment ${paymentId} created by ${interaction.user.id} for ${valor}`);
 
@@ -978,6 +1049,7 @@ class FinanceHandler {
   }
 
   static async processTransferRequest(interaction) {
+    if (!deduplicateInteraction(interaction.id)) return;
     if (!checkModalCooldown(interaction.user.id, 'transferencia')) {
       return interaction.reply({
         content: '⏳ Sua solicitação de transferência já foi enviada. Aguarde alguns segundos.',
@@ -1055,6 +1127,7 @@ class FinanceHandler {
 
       if (!global.pendingTransfers) global.pendingTransfers = new Map();
       global.pendingTransfers.set(transferId, transferData);
+      savePendingFinance();
 
       console.log(`[Finance] Transfer request ${transferId} from ${interaction.user.id} to ${userIdDestino} - Motivo: ${comentario}`);
 
@@ -1353,3 +1426,5 @@ class FinanceHandler {
 }
 
 module.exports = FinanceHandler;
+module.exports.loadPendingFinance = loadPendingFinance;
+module.exports.savePendingFinance = savePendingFinance;

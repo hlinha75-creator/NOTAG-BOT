@@ -327,6 +327,7 @@ client.once(Events.ClientReady, async () => {
  RegistrationActions.initialize();
  EventHandler.initialize();
  LootSplitHandler.loadSimulations();
+ FinanceHandler.loadPendingFinance();
  console.log('📝 Sistemas inicializados: Database + Registro + Eventos');
 
  // Criar canal do painel administrativo em todas as guilds configuradas
