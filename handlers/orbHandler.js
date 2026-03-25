@@ -308,6 +308,8 @@ class OrbHandler {
       // Limpar temp
       global.orbTemp.delete(interaction.user.id);
 
+      await interaction.deferReply({ ephemeral: true });
+
       // Enviar para financeiro
       const canalFinanceiro = interaction.guild.channels.cache.find(c => c.name === '📊╠financeiro');
       if (canalFinanceiro) {
@@ -354,20 +356,16 @@ class OrbHandler {
         });
       }
 
-      await interaction.reply({
+      await interaction.editReply({
         content: `✅ Depósito de orb enviado para aprovação!\n\n` +
                  `👥 **${userIds.length} jogadores** receberão **${xpAmount.toLocaleString()} XP** cada\n` +
                  `💎 **Total de XP:** ${totalXp.toLocaleString()}\n` +
-                 `📸 **Print:** ${linkPrint}`,
-        ephemeral: true
+                 `📸 **Print:** ${linkPrint}`
       });
 
     } catch (error) {
       console.error(`[OrbHandler] Error processing orb deposit:`, error);
-      await interaction.reply({
-        content: '❌ Erro ao processar depósito de orb.',
-        ephemeral: true
-      });
+      try { await interaction.editReply({ content: '❌ Erro ao processar depósito de orb.' }); } catch (_) { await interaction.reply({ content: '❌ Erro ao processar depósito de orb.', ephemeral: true }).catch(() => {}); }
     }
   }
 
@@ -394,6 +392,8 @@ class OrbHandler {
 
       const canalLogXp = interaction.guild.channels.cache.find(c => c.name === '📜╠log-xp');
 
+      await interaction.deferUpdate();
+
       // Distribuir XP para todos os usuários
       let sucessos = 0;
       for (const userId of deposit.users) {
@@ -414,7 +414,7 @@ class OrbHandler {
       deposit.status = 'aprovado';
       deposit.aprovadoPor = interaction.user.id;
 
-      await interaction.update({
+      await interaction.editReply({
         content: `✅ Orb aprovado por ${interaction.user.tag}!\n\n` +
                  `👥 ${sucessos}/${deposit.users.length} jogadores receberam ${deposit.xpAmount.toLocaleString()} XP\n` +
                  `💎 Total distribuído: ${(deposit.xpAmount * sucessos).toLocaleString()} XP`,
@@ -475,6 +475,8 @@ class OrbHandler {
       deposit.status = 'recusado';
       deposit.recusadoPor = interaction.user.id;
 
+      await interaction.deferUpdate();
+
       // Notificar participantes
       for (const userId of deposit.users) {
         try {
@@ -497,7 +499,7 @@ class OrbHandler {
         }
       }
 
-      await interaction.update({
+      await interaction.editReply({
         content: `❌ Orb recusado por ${interaction.user.tag}`,
         components: []
       });

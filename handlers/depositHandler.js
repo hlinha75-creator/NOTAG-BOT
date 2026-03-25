@@ -384,6 +384,8 @@ class DepositHandler {
  const userIds = tempData.users;
  const totalValor = valor * userIds.length;
 
+ await interaction.deferReply({ ephemeral: true });
+
  // Processar depósito para todos os usuários selecionados
  let sucessos = [];
  let falhas = [];
@@ -434,9 +436,8 @@ class DepositHandler {
  value: mentions || 'Nenhum'
  });
 
- await interaction.reply({
- embeds: [embedResultado],
- ephemeral: true
+ await interaction.editReply({
+ embeds: [embedResultado]
  });
 
  // Notificar jogadores que receberam o depósito

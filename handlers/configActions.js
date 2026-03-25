@@ -325,6 +325,8 @@ class ConfigActions {
         });
       }
 
+      await interaction.deferReply({ ephemeral: true });
+
       const taxasBau = { royal, black, brecilien, avalon };
 
       // Salvar no banco de dados
@@ -349,9 +351,8 @@ class ConfigActions {
         .setColor(0x2ECC71)
         .setTimestamp();
 
-      await interaction.reply({
-        embeds: [embed],
-        ephemeral: true
+      await interaction.editReply({
+        embeds: [embed]
       });
 
       // ✅ ATUALIZAR O PAINEL NO CANAL
@@ -361,10 +362,7 @@ class ConfigActions {
 
     } catch (error) {
       console.error(`[ConfigActions] Error processing taxa bau:`, error);
-      await interaction.reply({
-        content: '❌ Erro ao atualizar taxas de baú.',
-        ephemeral: true
-      });
+      try { await interaction.editReply({ content: '❌ Erro ao atualizar taxas de baú.' }); } catch (_) { await interaction.reply({ content: '❌ Erro ao atualizar taxas de baú.', ephemeral: true }).catch(() => {}); }
     }
   }
 
@@ -414,6 +412,8 @@ class ConfigActions {
         });
       }
 
+      await interaction.deferReply({ ephemeral: true });
+
       // Salvar no banco de dados
       await Database.updateGuildConfig(interaction.guild.id, { taxaEmprestimo: taxa });
 
@@ -425,9 +425,8 @@ class ConfigActions {
       config.taxaEmprestimo = taxa;
       global.guildConfig.set(interaction.guild.id, config);
 
-      await interaction.reply({
-        content: `✅ Taxa de empréstimo atualizada para \`${taxa}%\`!`,
-        ephemeral: true
+      await interaction.editReply({
+        content: `✅ Taxa de empréstimo atualizada para \`${taxa}%\`!`
       });
 
       // ✅ ATUALIZAR O PAINEL NO CANAL
@@ -437,10 +436,7 @@ class ConfigActions {
 
     } catch (error) {
       console.error(`[ConfigActions] Error processing taxa emprestimo:`, error);
-      await interaction.reply({
-        content: '❌ Erro ao atualizar taxa de empréstimo.',
-        ephemeral: true
-      });
+      try { await interaction.editReply({ content: '❌ Erro ao atualizar taxa de empréstimo.' }); } catch (_) { await interaction.reply({ content: '❌ Erro ao atualizar taxa de empréstimo.', ephemeral: true }).catch(() => {}); }
     }
   }
 

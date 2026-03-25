@@ -240,15 +240,16 @@ class BauSaleHandler {
  .setStyle(ButtonStyle.Danger)
  );
 
+ await interaction.deferReply({ ephemeral: true });
+
  await canalFinanceiro.send({
  content: `🔔 <@&${interaction.guild.roles.cache.find(r => r.name === 'ADM')?.id}> <@&${interaction.guild.roles.cache.find(r => r.name === 'Staff')?.id}> Nova venda de baú!`,
  embeds: [embed],
  components: [botoes]
  });
 
- await interaction.reply({
- content: `✅ Solicitação de venda enviada! Valor: \`${valor.toLocaleString()}\` (Taxa: ${taxaPercentual}%) = Receber: \`${valorReceber.toLocaleString()}\``,
- ephemeral: true
+ await interaction.editReply({
+ content: `✅ Solicitação de venda enviada! Valor: \`${valor.toLocaleString()}\` (Taxa: ${taxaPercentual}%) = Receber: \`${valorReceber.toLocaleString()}\``
  });
 
  } catch (error) {
@@ -293,10 +294,10 @@ class BauSaleHandler {
  });
  }
 
- Database.addSaldo(sale.userId, sale.valorReceber, 'venda_bau');
+ await Database.addSaldo(sale.userId, sale.valorReceber, 'venda_bau');
 
  if (sale.valorTaxa > 0) {
- Database.addTransaction({
+ await Database.addTransaction({
  type: 'credito',
  userId: 'GUILD_BANK',
  amount: sale.valorTaxa,
@@ -309,10 +310,13 @@ class BauSaleHandler {
  sale.status = 'aprovado';
  sale.compradoPor = interaction.user.id;
 
+ await interaction.deferUpdate();
+
  // 🎨 DM SUPER MODERNA - Baú Comprado
  try {
  const vendedor = await interaction.client.users.fetch(sale.userId);
- const novoSaldo = Database.getUser(sale.userId).saldo;
+ const userData = await Database.getUser(sale.userId);
+ const novoSaldo = userData?.saldo || 0;
 
  const embed = new EmbedBuilder()
  .setTitle('💎 BAÚ COMPRADO!')
@@ -340,7 +344,7 @@ class BauSaleHandler {
  console.log(`[BauSale] Could not DM seller ${sale.userId}`);
  }
 
- await interaction.update({
+ await interaction.editReply({
  content: `✅ Baú comprado! \`${sale.valorReceber.toLocaleString()}\` depositados para <@${sale.userId}>.`,
  components: []
  });
@@ -424,6 +428,8 @@ class BauSaleHandler {
  sale.motivoRecusa = motivo;
  sale.recusadoPor = interaction.user.id;
 
+ await interaction.deferReply({ ephemeral: true });
+
  // 🎨 DM SUPER MODERNA - Venda Recusada
  try {
  const vendedor = await interaction.client.users.fetch(sale.userId);
@@ -451,9 +457,8 @@ class BauSaleHandler {
  console.log(`[BauSale] Could not DM seller ${sale.userId}`);
  }
 
- await interaction.reply({
- content: `❌ Venda recusada. Motivo enviado para o vendedor.`,
- ephemeral: true
+ await interaction.editReply({
+ content: `❌ Venda recusada. Motivo enviado para o vendedor.`
  });
 
  const message = interaction.message;
