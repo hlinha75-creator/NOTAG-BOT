@@ -286,6 +286,26 @@ global.marketSearches = new Map();
 global.depositTemp = new Map();
 global.driveBackup = driveBackup; // 💾 BACKUP GLOBAL
 
+// ✅ CORREÇÃO CRÍTICA: Sistema Global de Deduplicação de Interações
+// Previne processamento duplicado de comandos/botões/modais
+const processedInteractions = new Set();
+const PROCESSING_TIMEOUT = 10 * 60 * 1000; // 10 minutos
+
+function isInteractionProcessed(interactionId) {
+ if (processedInteractions.has(interactionId)) {
+ return true;
+ }
+
+ processedInteractions.add(interactionId);
+
+ // Limpeza automática após timeout para evitar memory leak
+ setTimeout(() => {
+ processedInteractions.delete(interactionId);
+ }, PROCESSING_TIMEOUT);
+
+ return false;
+}
+
 // Carregar dados persistidos (blacklist e histórico)
 try {
  if (!fs.existsSync('./data')) {
@@ -502,6 +522,15 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 // ==================== HANDLER PRINCIPAL DE INTERAÇÕES ====================
 client.on(Events.InteractionCreate, async interaction => {
  try {
+ // ✅ CORREÇÃO CRÍTICA: Verificar duplicação GLOBAL antes de qualquer processamento
+ if (isInteractionProcessed(interaction.id)) {
+ console.log(`[InteractionCreate] Interação ${interaction.id} já processada. Ignorando duplicação.`);
+ return;
+ }
+
+ // Log da interação recebida
+ console.log(`[InteractionCreate] Tipo: ${interaction.type} | ID: ${interaction.id} | Usuário: ${interaction.user?.id}`);
+
  // COMANDOS SLASH
  if (interaction.isChatInputCommand()) {
  const command = client.commands.get(interaction.commandName);
