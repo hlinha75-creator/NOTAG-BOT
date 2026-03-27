@@ -38,7 +38,7 @@ class GoogleDriveBackup {
  type: 'service_account',
  project_id: process.env.GOOGLE_PROJECT_ID || 'notag-bot-backup',
  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID || '',
- private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+ private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\n/g, '\n'),
  client_email: process.env.GOOGLE_CLIENT_EMAIL,
  client_id: process.env.GOOGLE_CLIENT_ID || '',
  auth_uri: 'https://accounts.google.com/o/oauth2/auth',
@@ -306,6 +306,74 @@ function isInteractionProcessed(interactionId) {
  return false;
 }
 
+// ✅ CORREÇÃO CRÍTICA: Sistema de Lock por Usuário+Comando
+// Previne que o mesmo usuário execute o mesmo comando simultaneamente (race condition)
+const userCommandLocks = new Map();
+const LOCK_TIMEOUT = 30 * 1000; // 30 segundos de timeout para locks
+
+function getLockKey(userId, commandKey) {
+ return `${userId}_${commandKey}`;
+}
+
+function acquireLock(userId, commandKey) {
+ const lockKey = getLockKey(userId, commandKey);
+
+ if (userCommandLocks.has(lockKey)) {
+ return false; // Já está lockado
+ }
+
+ userCommandLocks.set(lockKey, Date.now());
+
+ // Auto-release após timeout de segurança
+ setTimeout(() => {
+ userCommandLocks.delete(lockKey);
+ }, LOCK_TIMEOUT);
+
+ return true;
+}
+
+function releaseLock(userId, commandKey) {
+ const lockKey = getLockKey(userId, commandKey);
+ userCommandLocks.delete(lockKey);
+}
+
+function getCommandKey(interaction) {
+ // Gera uma chave única baseada no tipo de interação
+ if (interaction.isChatInputCommand()) {
+ return `cmd_${interaction.commandName}`;
+ }
+ if (interaction.isButton()) {
+ // Agrupa botões relacionados (ex: consultar_saldo, sacar_saldo -> operacao_saldo)
+ const customId = interaction.customId;
+ if (customId === 'btn_consultar_saldo') return 'btn_consultar_saldo';
+ if (customId === 'btn_sacar_saldo') return 'btn_sacar_saldo';
+ if (customId === 'btn_solicitar_emprestimo') return 'btn_solicitar_emprestimo';
+ if (customId === 'btn_transferir_saldo') return 'btn_transferir_saldo';
+ if (customId === 'btn_quitar_emprestimo') return 'btn_quitar_emprestimo';
+ if (customId.startsWith('fin_confirmar_saque_')) return 'fin_confirmar_saque';
+ if (customId.startsWith('fin_recusar_saque_')) return 'fin_recusar_saque';
+ if (customId.startsWith('dep_')) return 'dep_action';
+ if (customId.startsWith('orb_')) return 'orb_action';
+ return `btn_${customId.split('_')[0]}`;
+ }
+ if (interaction.isModalSubmit()) {
+ const customId = interaction.customId;
+ if (customId === 'modal_sacar_saldo') return 'modal_sacar_saldo';
+ if (customId === 'modal_solicitar_emprestimo') return 'modal_solicitar_emprestimo';
+ if (customId === 'modal_quitar_emprestimo') return 'modal_quitar_emprestimo';
+ if (customId === 'modal_transferir_saldo') return 'modal_transferir_saldo';
+ if (customId === 'modal_deposito_valor') return 'modal_deposito_valor';
+ return `modal_${customId.split('_')[0]}`;
+ }
+ if (interaction.isStringSelectMenu()) {
+ return `select_${interaction.customId.split('_')[0]}`;
+ }
+ if (interaction.isUserSelectMenu()) {
+ return `userselect_${interaction.customId}`;
+ }
+ return `generic_${interaction.type}`;
+}
+
 // Carregar dados persistidos (blacklist e histórico)
 try {
  if (!fs.existsSync('./data')) {
@@ -531,12 +599,30 @@ client.on(Events.InteractionCreate, async interaction => {
  // Log da interação recebida
  console.log(`[InteractionCreate] Tipo: ${interaction.type} | ID: ${interaction.id} | Usuário: ${interaction.user?.id}`);
 
+ // ✅ CORREÇÃO CRÍTICA: Verificar lock por usuário+comando para prevenir race conditions
+ const commandKey = getCommandKey(interaction);
+ const userId = interaction.user.id;
+
+ if (!acquireLock(userId, commandKey)) {
+ console.log(`[InteractionCreate] Lock ativo para usuário ${userId} no comando ${commandKey}. Ignorando.`);
+ try {
+ if (!interaction.replied && !interaction.deferred) {
+ await interaction.reply({
+ content: '⏳ Você já tem uma operação em andamento. Aguarde alguns segundos.',
+ ephemeral: true
+ });
+ }
+ } catch (e) {}
+ return;
+ }
+
  // COMANDOS SLASH
  if (interaction.isChatInputCommand()) {
  const command = client.commands.get(interaction.commandName);
 
  if (!command) {
  console.error(`❌ Comando não encontrado: ${interaction.commandName}`);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -546,6 +632,7 @@ client.on(Events.InteractionCreate, async interaction => {
  interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 
  if (!isADM) {
+ releaseLock(userId, commandKey);
  return interaction.reply({
  content: '❌ Apenas ADMs podem usar este comando!',
  ephemeral: true
@@ -569,6 +656,8 @@ client.on(Events.InteractionCreate, async interaction => {
  ephemeral: true
  });
  }
+ } finally {
+ releaseLock(userId, commandKey);
  }
  return;
  }
@@ -580,6 +669,7 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId === 'confirmar_limpar_eventos' || customId === 'cancelar_limpar_eventos' ||
  customId === 'confirmar_limpar_saldo' || customId === 'cancelar_limpar_saldo' ||
  customId === 'confirmar_limpar_xp' || customId === 'cancelar_limpar_xp') {
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -601,6 +691,7 @@ client.on(Events.InteractionCreate, async interaction => {
  )
  );
  await interaction.showModal(modal);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -610,6 +701,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const testKbConfig = global.guildConfig?.get(interaction.guild.id)?.killboard;
  if (!testKbConfig) {
  await interaction.editReply({ content: '❌ Killboard não configurado! Use `/killboard setup` e `/killboard config` primeiro.' });
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -663,11 +755,13 @@ client.on(Events.InteractionCreate, async interaction => {
  const killChannelId = testKbConfig.killChannelId;
  if (!killChannelId) {
  await interaction.editReply({ content: '❌ Canal de kills não configurado. Use `/killboard setup` primeiro.' });
+ releaseLock(userId, commandKey);
  return;
  }
  const killChannel = interaction.guild.channels.cache.get(killChannelId);
  if (!killChannel) {
  await interaction.editReply({ content: `❌ Canal de kills não encontrado (ID: ${killChannelId}).` });
+ releaseLock(userId, commandKey);
  return;
  }
  const killEmbed = await KillboardHandler.createKillEmbed(mockKbEvent, testKbConfig);
@@ -678,11 +772,13 @@ client.on(Events.InteractionCreate, async interaction => {
  const deathChannelId = testKbConfig.deathChannelId;
  if (!deathChannelId) {
  await interaction.editReply({ content: '❌ Canal de deaths não configurado. Use `/killboard setup` primeiro.' });
+ releaseLock(userId, commandKey);
  return;
  }
  const deathChannel = interaction.guild.channels.cache.get(deathChannelId);
  if (!deathChannel) {
  await interaction.editReply({ content: `❌ Canal de deaths não encontrado (ID: ${deathChannelId}).` });
+ releaseLock(userId, commandKey);
  return;
  }
  const deathEmbed = await KillboardHandler.createDeathEmbed(mockKbEvent, testKbConfig);
@@ -694,6 +790,7 @@ client.on(Events.InteractionCreate, async interaction => {
  console.error('[Killboard Test Button] Erro:', kbTestErr);
  await interaction.editReply({ content: `❌ Erro ao enviar teste: ${kbTestErr.message}` });
  }
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -703,51 +800,60 @@ client.on(Events.InteractionCreate, async interaction => {
  content: `🔄 Atualizando dados do evento ${eventId}...`,
  ephemeral: true
  });
+ releaseLock(userId, commandKey);
  return;
  }
 
  // 🛒 MERCADO ALBION - NOVO SISTEMA DE NAVEGAÇÃO
  if (customId === 'market_browse_category') {
  await MarketHandler.handleBrowseCategory(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'market_search_advanced') {
  await MarketHandler.handleAdvancedSearch(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'market_search_again') {
  await MarketHandler.sendPanel(interaction.channel);
  await interaction.reply({ content: '🔄 Iniciando nova pesquisa...', ephemeral: true });
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('market_back_category_')) {
  const searchId = customId.replace('market_back_category_', '');
  await MarketHandler.handleBrowseCategory(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('market_search_confirm_')) {
  const searchId = customId.replace('market_search_confirm_', '');
  await MarketHandler.executeSearch(interaction, searchId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('market_cancel_')) {
  const searchId = customId.replace('market_cancel_', '');
  await MarketHandler.cancelSearch(interaction, searchId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'market_help') {
  await MarketHandler.showHelp(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'market_update_cache') {
  await MarketHandler.handleUpdateCache(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -755,42 +861,49 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId === 'btn_abrir_registro') {
  const modal = RegistrationModal.createRegistrationModal();
  await interaction.showModal(modal);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_tentar_novamente_registro') {
  const modal = RegistrationModal.createRegistrationModal();
  await interaction.showModal(modal);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('aprovar_membro_')) {
  const regId = customId.replace('aprovar_membro_', '');
  await RegistrationActions.approveAsMember(interaction, regId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('aprovar_alianca_')) {
  const regId = customId.replace('aprovar_alianca_', '');
  await RegistrationActions.approveAsAlianca(interaction, regId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('aprovar_convidado_')) {
  const regId = customId.replace('aprovar_convidado_', '');
  await RegistrationActions.approveAsConvidado(interaction, regId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('recusar_registro_')) {
  const regId = customId.replace('recusar_registro_', '');
  await RegistrationActions.handleRejectRegistration(interaction, regId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('blacklist_add_')) {
  const regId = customId.replace('blacklist_add_', '');
  await RegistrationActions.handleBlacklistAdd(interaction, regId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -798,12 +911,14 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId === 'btn_criar_evento') {
  const modal = EventPanel.createEventModal();
  await interaction.showModal(modal);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_raid_avalon') {
  const modal = EventPanel.createRaidAvalonModal();
  await interaction.showModal(modal);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -812,6 +927,7 @@ client.on(Events.InteractionCreate, async interaction => {
  content: '🔒 Este recurso estará disponível em breve!',
  ephemeral: true
  });
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -823,24 +939,28 @@ client.on(Events.InteractionCreate, async interaction => {
  } else {
  await RaidAvalonHandler.showClassLimitModal(interaction, action);
  }
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('raid_iniciar_')) {
  const raidId = customId.replace('raid_iniciar_', '');
  await RaidAvalonHandler.handleIniciar(interaction, raidId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('raid_finalizar_')) {
  const raidId = customId.replace('raid_finalizar_', '');
  await RaidAvalonHandler.handleFinalizar(interaction, raidId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('raid_cancelar_')) {
  const raidId = customId.replace('raid_cancelar_', '');
  await RaidAvalonHandler.handleCancelar(interaction, raidId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -848,48 +968,56 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId.startsWith('evt_participar_')) {
  const eventId = customId.replace('evt_participar_', '');
  await EventHandler.handleParticipar(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('evt_iniciar_')) {
  const eventId = customId.replace('evt_iniciar_', '');
  await EventHandler.handleIniciar(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('evt_pausar_global_')) {
  const eventId = customId.replace('evt_pausar_global_', '');
  await EventHandler.handlePausarGlobal(interaction, eventId, true);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('evt_retomar_global_')) {
  const eventId = customId.replace('evt_retomar_global_', '');
  await EventHandler.handlePausarGlobal(interaction, eventId, false);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('evt_pausar_')) {
  const eventId = customId.replace('evt_pausar_', '');
  await EventHandler.handlePausar(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('evt_trancar_')) {
  const eventId = customId.replace('evt_trancar_', '');
  await EventHandler.handleTrancar(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('evt_cancelar_')) {
  const eventId = customId.replace('evt_cancelar_', '');
  await EventHandler.handleCancelar(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('evt_finalizar_')) {
  const eventId = customId.replace('evt_finalizar_', '');
  await EventHandler.handleFinalizar(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -898,24 +1026,28 @@ client.on(Events.InteractionCreate, async interaction => {
  const eventId = customId.replace('loot_simular_', '');
  const modal = LootSplitHandler.createSimulationModal(eventId);
  await interaction.showModal(modal);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('loot_enviar_')) {
  const simulationId = customId.replace('loot_enviar_', '');
  await LootSplitHandler.handleEnviar(interaction, simulationId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('loot_recalcular_')) {
  const simulationId = customId.replace('loot_recalcular_', '');
  await LootSplitHandler.handleRecalcular(interaction, simulationId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('fin_aprovar_')) {
  const simulationId = customId.replace('fin_aprovar_', '');
  await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, true);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -923,24 +1055,28 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId.startsWith('fin_recusar_saque_')) {
  const withdrawalId = customId.replace('fin_recusar_saque_', '');
  await FinanceHandler.handleRejectWithdrawal(interaction, withdrawalId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('fin_recusar_emprestimo_')) {
  const loanId = customId.replace('fin_recusar_emprestimo_', '');
  await FinanceHandler.handleRejectLoan(interaction, loanId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('fin_recusar_quitacao_')) {
  const paymentId = customId.replace('fin_recusar_quitacao_', '');
  await FinanceHandler.handleRejectLoanPayment(interaction, paymentId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('fin_recusar_')) {
  const simulationId = customId.replace('fin_recusar_', '');
  await LootSplitHandler.handleAprovacaoFinanceira(interaction, simulationId, false);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -952,56 +1088,66 @@ client.on(Events.InteractionCreate, async interaction => {
  } else {
  await interaction.reply({ content: '❌ Simulação não encontrada!', ephemeral: true });
  }
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('loot_atualizar_part_')) {
  const simulationId = customId.replace('loot_atualizar_part_', '');
  await LootSplitHandler.handleAtualizarParticipacao(interaction, simulationId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('loot_clear_users_')) {
  const simulationId = customId.replace('loot_clear_users_', '');
  await LootSplitHandler.clearUserSelection(interaction, simulationId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('loot_proceed_taxa_')) {
  const simulationId = customId.replace('loot_proceed_taxa_', '');
  await LootSplitHandler.openTaxaModal(interaction, simulationId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // DEPÓSITO - Sistema Antigo (mantido para compatibilidade)
  if (customId === 'btn_deposito_novo') {
  await DepositHandler.handleDepositoButton(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_historico_depositos') {
  await DepositHandler.showHistorico(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_ajuda_deposito') {
  await DepositHandler.showAjuda(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // 💵 NOVO SISTEMA DE DEPÓSITO - FLUXO DE SELEÇÃO DE USUÁRIOS
  if (customId === 'dep_select_users') {
  await DepositHandler.openUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'dep_clear_users') {
  await DepositHandler.clearUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'dep_proceed_to_modal') {
  await DepositHandler.openValorModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1017,10 +1163,12 @@ client.on(Events.InteractionCreate, async interaction => {
  interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 
  if (!isTesoureiro) {
+ releaseLock(userId, commandKey);
  return interaction.reply({ content: '❌ Apenas tesoureiros podem aprovar depósitos!', ephemeral: true });
  }
 
  await DepositHandler.handleAprovacao(interaction, depositId, userId, valor, true);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1031,91 +1179,108 @@ client.on(Events.InteractionCreate, async interaction => {
  interaction.member.permissions.has(PermissionFlagsBits.Administrator);
 
  if (!isTesoureiro) {
+ releaseLock(userId, commandKey);
  return interaction.reply({ content: '❌ Apenas tesoureiros podem recusar depósitos!', ephemeral: true });
  }
 
  await DepositHandler.handleAprovacao(interaction, depositId, null, null, false);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('dep_verificar_')) {
  const comprovante = customId.replace('dep_verificar_', '');
  await interaction.reply({ content: `📎 **Comprovante:** ${comprovante}`, ephemeral: true });
+ releaseLock(userId, commandKey);
  return;
  }
 
  // CONSULTAR SALDO
  if (customId === 'btn_consultar_saldo') {
  await ConsultarSaldoHandler.handleConsultarSaldo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_sacar_saldo') {
  await ConsultarSaldoHandler.handleSacarSaldo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_solicitar_emprestimo') {
  await ConsultarSaldoHandler.handleSolicitarEmprestimo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_transferir_saldo') {
  await ConsultarSaldoHandler.handleTransferirSaldo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_quitar_emprestimo') {
  await ConsultarSaldoHandler.handleQuitarEmprestimo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // SALDO GUILDA
  if (customId === 'btn_saldo_atualizar') {
  await BalancePanelHandler.handleAtualizar(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_saldo_detalhes') {
  await BalancePanelHandler.handleDetalhes(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_saldo_historico') {
  await BalancePanelHandler.handleHistorico(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // PAINEL ADMINISTRATIVO
  if (customId === 'adm_confiscar_saldo') {
  await AdminPanelHandler.handleConfiscarSaldo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'adm_confiscar_select_users') {
  await AdminPanelHandler.openUserSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'adm_confiscar_clear') {
  await AdminPanelHandler.clearSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'adm_confiscar_proceed') {
  await AdminPanelHandler.openValorModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('adm_confiscar_confirm_')) {
  const confiscoId = customId.replace('adm_confiscar_confirm_', '');
  await AdminPanelHandler.executeConfisco(interaction, confiscoId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('adm_confiscar_cancel_')) {
  const confiscoId = customId.replace('adm_confiscar_cancel_', '');
  await AdminPanelHandler.cancelConfisco(interaction, confiscoId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1123,94 +1288,111 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId.startsWith('fin_confirmar_saque_')) {
  const withdrawalId = customId.replace('fin_confirmar_saque_', '');
  await FinanceHandler.handleConfirmWithdrawal(interaction, withdrawalId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('fin_confirmar_emprestimo_')) {
  const loanId = customId.replace('fin_confirmar_emprestimo_', '');
  await FinanceHandler.handleConfirmLoan(interaction, loanId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('fin_confirmar_quitacao_')) {
  const paymentId = customId.replace('fin_confirmar_quitacao_', '');
  await FinanceHandler.handleConfirmLoanPayment(interaction, paymentId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('transf_aceitar_')) {
  const transferId = customId.replace('transf_aceitar_', '');
  await FinanceHandler.handleAcceptTransfer(interaction, transferId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('transf_recusar_')) {
  const transferId = customId.replace('transf_recusar_', '');
  await FinanceHandler.handleRejectTransfer(interaction, transferId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // ALBION ACADEMY / PERFIL
  if (customId === 'btn_criar_xp_event') {
  await XpEventHandler.showCreateEventModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_depositar_xp_manual') {
  await PerfilHandler.showDepositXpModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'xp_select_users') {
  await PerfilHandler.openUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'xp_clear_users') {
  await PerfilHandler.clearUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'xp_proceed_to_modal') {
  await PerfilHandler.createManualXpModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_ver_perfil') {
  await PerfilHandler.showProfile(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_depositar_orb') {
  await OrbHandler.showUserSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // ORB HANDLERS
  if (customId === 'orb_select_users') {
  await OrbHandler.openUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'orb_clear_users') {
  await OrbHandler.clearUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'orb_proceed_to_modal') {
  await OrbHandler.openOrbModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('orb_approve_')) {
  const depositId = customId.replace('orb_approve_', '');
  await OrbHandler.approveOrb(interaction, depositId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('orb_reject_')) {
  const depositId = customId.replace('orb_reject_', '');
  await OrbHandler.rejectOrb(interaction, depositId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1219,12 +1401,14 @@ client.on(Events.InteractionCreate, async interaction => {
  await interaction.deferUpdate();
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleAtualizar(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_mlist_atualizar') {
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleAtualizar(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1232,6 +1416,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const MemberListPanel = require('./handlers/memberListPanel');
  const members = Array.from((await interaction.guild.members.fetch()).values());
  await MemberListPanel.showMemberPage(interaction, members, 1, Math.ceil(members.length/10), 'all');
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1242,24 +1427,28 @@ client.on(Events.InteractionCreate, async interaction => {
  } else if (customId.includes('prev')) {
  await MemberListPanel.handlePageNavigation(interaction, 'prev');
  }
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_mlist_voltar_resumo') {
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleVoltarResumo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_mlist_stats') {
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleStatsDetailed(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_mlist_export') {
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleExport(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1267,47 +1456,56 @@ client.on(Events.InteractionCreate, async interaction => {
  if (customId === 'btn_eventos_atualizar') {
  const EventStatsHandler = require('./handlers/eventStatsHandler');
  await EventStatsHandler.handleAtualizar(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_eventos_exportar') {
  await interaction.reply({ content: '⏳ Exportação de dados em desenvolvimento...', ephemeral: true });
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'btn_eventos_ajuda') {
  await interaction.reply({ content: '❓ **Painel de Eventos**\n\nUse os menus acima para filtrar eventos por período ou cargo.', ephemeral: true });
+ releaseLock(userId, commandKey);
  return;
  }
 
  // CONFIGURAÇÕES
  if (customId === 'config_taxa_guilda') {
  await ConfigActions.handleTaxaGuilda(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'config_registrar_guilda') {
  await ConfigActions.handleRegistrarGuilda(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'config_xp') {
  await ConfigActions.handleXP(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'config_taxa_bau') {
  await ConfigActions.handleTaxaBau(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'config_taxa_emprestimo') {
  await ConfigActions.handleTaxaEmprestimo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'config_atualizar_bot') {
  await ConfigActions.handleAtualizarBot(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1316,35 +1514,41 @@ client.on(Events.InteractionCreate, async interaction => {
  const server = parts[0];
  const guildName = parts.slice(1).join('_');
  await ConfigActions.confirmarGuildaRegistro(interaction, server, guildName);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId === 'cancelar_guilda_registro') {
  await ConfigActions.cancelarGuildaRegistro(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('xp_event_ver_progresso_')) {
  const eventId = customId.replace('xp_event_ver_progresso_', '');
  await XpEventHandler.handleVerProgresso(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('xp_event_atualizar_')) {
  const eventId = customId.replace('xp_event_atualizar_', '');
  await XpEventHandler.handleAtualizarProgresso(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('xp_event_finalizar_')) {
  const eventId = customId.replace('xp_event_finalizar_', '');
  await XpEventHandler.finalizarXpEvent(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (customId.startsWith('xp_event_cancelar_')) {
  const eventId = customId.replace('xp_event_cancelar_', '');
  await XpEventHandler.cancelarXpEvent(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
  }
@@ -1353,16 +1557,19 @@ client.on(Events.InteractionCreate, async interaction => {
  if (interaction.isStringSelectMenu()) {
  if (interaction.customId === 'select_server_registro') {
  await RegistrationModal.processServerSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_platform_registro') {
  await RegistrationModal.processPlatformSelect(interaction, client);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_taxa_guilda') {
  await ConfigActions.handleTaxaSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1372,36 +1579,42 @@ client.on(Events.InteractionCreate, async interaction => {
  const existing = global.orbTemp.get(interaction.user.id) || {};
  global.orbTemp.set(interaction.user.id, { ...existing, orbType });
  await OrbHandler.showUserSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_periodo_eventos') {
  const EventStatsHandler = require('./handlers/eventStatsHandler');
  await EventStatsHandler.handlePeriodSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_cargo_eventos') {
  const EventStatsHandler = require('./handlers/eventStatsHandler');
  await EventStatsHandler.handleRoleSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('loot_select_users_')) {
  const simulationId = interaction.customId.replace('loot_select_users_', '');
  await LootSplitHandler.processUserSelection(interaction, simulationId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'mlist_filter_cargo') {
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleFilterSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'mlist_sort_by') {
  const MemberListPanel = require('./handlers/memberListPanel');
  await MemberListPanel.handleSortSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1409,6 +1622,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const raidId = interaction.customId.replace('raid_select_class_', '');
  const classKey = interaction.values[0];
  await RaidAvalonHandler.showWeaponSelect(interaction, raidId, classKey);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1418,20 +1632,24 @@ client.on(Events.InteractionCreate, async interaction => {
  const classKey = parts[3];
  const weaponKey = interaction.values[0];
  await RaidAvalonHandler.processWeaponSelect(interaction, raidId, classKey, weaponKey);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_server_guilda') {
  await ConfigActions.processGuildaServerSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_orb_users') {
  await OrbHandler.processUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'ajuda_menu') {
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1440,6 +1658,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const searchId = interaction.customId.replace('market_select_category_', '');
  const category = interaction.values[0];
  await MarketHandler.showCategoryItems(interaction, category, searchId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1447,6 +1666,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const searchId = interaction.customId.replace('market_select_item_', '');
  const itemId = interaction.values[0];
  await MarketHandler.showItemFilters(interaction, itemId, searchId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1454,6 +1674,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const searchId = interaction.customId.replace('market_filter_tier_', '');
  const tier = interaction.values[0];
  await MarketHandler.updateFilter(interaction, 'tier', searchId, tier);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1461,6 +1682,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const searchId = interaction.customId.replace('market_filter_enchant_', '');
  const enchant = interaction.values[0];
  await MarketHandler.updateFilter(interaction, 'enchant', searchId, enchant);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1468,6 +1690,7 @@ client.on(Events.InteractionCreate, async interaction => {
  const searchId = interaction.customId.replace('market_filter_quality_', '');
  const quality = interaction.values[0];
  await MarketHandler.updateFilter(interaction, 'quality', searchId, quality);
+ releaseLock(userId, commandKey);
  return;
  }
  }
@@ -1476,29 +1699,34 @@ client.on(Events.InteractionCreate, async interaction => {
  if (interaction.isUserSelectMenu()) {
  if (interaction.customId === 'select_xp_target_users') {
  await PerfilHandler.processUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_xp_target_user') {
  const targetUserId = interaction.values[0];
  await PerfilHandler.createManualXpModal(interaction, targetUserId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'select_orb_users') {
  await OrbHandler.processUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // 💵 NOVO: DEPÓSITO - Seleção de usuários
  if (interaction.customId === 'dep_select_users_menu') {
  await DepositHandler.processUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // PAINEL ADMINISTRATIVO - Seleção de jogadores para confisco
  if (interaction.customId === 'adm_confiscar_users_menu') {
  await AdminPanelHandler.processUserSelection(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
  }
@@ -1518,27 +1746,32 @@ client.on(Events.InteractionCreate, async interaction => {
  content: `❌ **Não foi possível iniciar o registro:**\n\n${erros.join('\n')}`,
  ephemeral: true
  });
+ releaseLock(userId, commandKey);
  return;
  }
 
  await RegistrationModal.processRegistration(interaction, client);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('modal_recusar_registro_')) {
  const regId = interaction.customId.replace('modal_recusar_registro_', '');
  await RegistrationActions.processRejectionWithReason(interaction, regId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('modal_blacklist_')) {
  const regId = interaction.customId.replace('modal_blacklist_', '');
  await RegistrationActions.processBlacklistAdd(interaction, regId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_criar_evento') {
  await EventHandler.createEvent(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1558,10 +1791,12 @@ client.on(Events.InteractionCreate, async interaction => {
  };
 
  await RaidAvalonHandler.showClassConfigModal(interaction, raidData);
+ releaseLock(userId, commandKey);
  return;
  } catch (error) {
  console.error('[Index] Error processing raid modal:', error);
  await interaction.reply({ content: '❌ Erro ao processar formulário da raid.', ephemeral: true });
+ releaseLock(userId, commandKey);
  return;
  }
  }
@@ -1569,55 +1804,65 @@ client.on(Events.InteractionCreate, async interaction => {
  if (interaction.customId.startsWith('raid_limit_')) {
  const classKey = interaction.customId.replace('raid_limit_', '');
  await RaidAvalonHandler.processClassLimit(interaction, classKey);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('modal_simular_evento_')) {
  const eventId = interaction.customId.replace('modal_simular_evento_', '');
  await LootSplitHandler.processSimulation(interaction, eventId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // 💵 DEPÓSITO - Novo fluxo (valor normal, sem milhões)
  if (interaction.customId === 'modal_deposito_valor') {
  await DepositHandler.processDeposito(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_sacar_saldo') {
  await FinanceHandler.processWithdrawRequest(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_solicitar_emprestimo') {
  await FinanceHandler.processLoanRequest(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_quitar_emprestimo') {
  await FinanceHandler.processLoanPaymentRequest(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('modal_taxa_participacao_')) {
  const simulationId = interaction.customId.replace('modal_taxa_participacao_', '');
  await LootSplitHandler.processTaxaUpdate(interaction, simulationId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_transferir_saldo') {
  await FinanceHandler.processTransferRequest(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_adm_confiscar_valor') {
  await AdminPanelHandler.processValorModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('modal_motivo_recusa_saque_')) {
  const withdrawalId = interaction.customId.replace('modal_motivo_recusa_saque_', '');
  await FinanceHandler.processWithdrawalRejection(interaction, withdrawalId);
+ releaseLock(userId, commandKey);
  return;
  }
 
@@ -1636,59 +1881,77 @@ client.on(Events.InteractionCreate, async interaction => {
  content: `❌ Erro ao configurar: ${error.message}`
  });
  }
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_depositar_xp_multi') {
  await PerfilHandler.processManualXpDeposit(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('modal_depositar_xp_')) {
  const targetUserId = interaction.customId.replace('modal_depositar_xp_', '');
  await PerfilHandler.processManualXpDeposit(interaction, targetUserId);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId.startsWith('modal_depositar_orb_')) {
  await OrbHandler.processOrbDeposit(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_taxa_guilda') {
  await ConfigActions.handleTaxaSelect(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_taxas_bau') {
  await ConfigActions.processTaxaBau(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_taxa_emprestimo') {
  await ConfigActions.processTaxaEmprestimo(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_registrar_guilda_nome') {
  await ConfigActions.processGuildaNome(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  if (interaction.customId === 'modal_criar_xp_event') {
  await XpEventHandler.processCreateXpEvent(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
 
  // 🛒 MERCADO - Busca Avançada
  if (interaction.customId === 'market_modal_search') {
  await MarketHandler.processSearchModal(interaction);
+ releaseLock(userId, commandKey);
  return;
  }
  }
 
+ // Se chegou aqui sem fazer return, libera o lock
+ releaseLock(userId, commandKey);
+
  } catch (error) {
  console.error('❌ Erro no handler de interações:', error);
+
+ // Libera o lock em caso de erro
+ if (userId && commandKey) {
+ releaseLock(userId, commandKey);
+ }
 
  try {
  if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {
