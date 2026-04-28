@@ -1,1 +1,73 @@
-[]
+[
+  [
+    "raid_1777293269457_1276439186513203234",
+    {
+      "nome": "Raid Avalon 21h UTC",
+      "descricao": "Martlock Portal\nBuild / Weapon 5.3 mínimo\nRegear da Arma\n\nTank - Martelo / Incubus\nOffTank - Incubus / Enig\nHealer - Krosta / Corrompido\nParty Healer - Raiz / Corrompido / Frost\nLooter - any / all swaps\nSup - SC / Putrido\n\n14x DPS PVE >\nDPS Melee - Foice Cristal (Reaper Crystal)\nDPS Ranged - Fura-Bruma (Mistpiercer)\n\n10x Calming Pot / 4x Beef Stew\nSkip Set (AntGankers)",
+      "horario": "21:00",
+      "limiteTotal": 21,
+      "classes": {
+        "tank": {
+          "limite": 2,
+          "participantes": [
+            {
+              "userId": "1276439186513203234",
+              "nick": "!Tmaiusculo.",
+              "arma": "Martelo",
+              "classe": "tank",
+              "joinedAt": 1777293279791
+            }
+          ]
+        },
+        "healer": {
+          "limite": 2,
+          "participantes": []
+        },
+        "dps": {
+          "limite": 14,
+          "participantes": [
+            {
+              "userId": "125256468071972864",
+              "nick": "felp22felipecarvalho",
+              "arma": "Fura-bruma",
+              "classe": "dps",
+              "joinedAt": 1777293298178
+            },
+            {
+              "userId": "766727465652453407",
+              "nick": "Dsn",
+              "arma": "Fura-bruma",
+              "classe": "dps",
+              "joinedAt": 1777297581962
+            }
+          ]
+        },
+        "suporte": {
+          "limite": 1,
+          "participantes": [
+            {
+              "userId": "698204412342173816",
+              "nick": "avven1996",
+              "arma": "Chama-sombra",
+              "classe": "suporte",
+              "joinedAt": 1777297755243
+            }
+          ]
+        },
+        "scout": {
+          "limite": 1,
+          "participantes": []
+        }
+      },
+      "id": "raid_1777293269457_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1498301311559667772",
+      "canalTextoId": "1481397657065754797",
+      "status": "aguardando",
+      "messageId": "1498301314415726704",
+      "tipo": "raid_avalon"
+    }
+  ]
+]

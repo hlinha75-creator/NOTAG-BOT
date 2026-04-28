@@ -719,5 +719,2220 @@
       "trancado": false,
       "messageId": "1486041928226050059"
     }
+  ],
+  [
+    "event_1774655007991_1276439186513203234",
+    {
+      "id": "event_1774655007991_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "roaming t7 - myke",
+      "descricao": "t7",
+      "requisitos": "t7",
+      "horario": "01:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1487235639916101664",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "766727465652453407",
+          {
+            "nick": "Dsn",
+            "userId": "766727465652453407",
+            "tempoInicio": 1774655045200,
+            "tempoTotal": 2844101,
+            "pausado": false
+          }
+        ],
+        [
+          "1276439186513203234",
+          {
+            "nick": "Tmaiusculo",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1774655045200,
+            "tempoTotal": 2844101,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": "killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1774655045200,
+            "tempoTotal": 2844101,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": "MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1774655045200,
+            "tempoTotal": 2844101,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1774655045200,
+            "tempoTotal": 2844101,
+            "pausado": false
+          }
+        ],
+        [
+          "329088072845099008",
+          {
+            "nick": "DaPraia013",
+            "userId": "329088072845099008",
+            "tempoInicio": null,
+            "tempoTotal": 2115401,
+            "pausado": true
+          }
+        ]
+      ],
+      "inicioTimestamp": 1774655045200,
+      "finalizadoEm": 1774657889301,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1487235642692866058"
+    }
+  ],
+  [
+    "event_1776737002814_1276439186513203234",
+    {
+      "id": "event_1776737002814_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Roaming Coleta Black",
+      "descricao": "martlock portal",
+      "requisitos": "tools",
+      "horario": "02:05",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1495968159566663690",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1776737032775,
+            "tempoTotal": 7511004,
+            "pausado": false
+          }
+        ],
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776737032775,
+            "tempoTotal": 7511004,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1776737124793,
+            "tempoTotal": 7418986,
+            "pausado": false
+          }
+        ],
+        [
+          "913832976784166923",
+          {
+            "nick": "SoulTavio",
+            "userId": "913832976784166923",
+            "tempoInicio": 1776737138507,
+            "tempoTotal": 7405272,
+            "pausado": false
+          }
+        ],
+        [
+          "1318760627430232068",
+          {
+            "nick": ".Sabedoria7",
+            "userId": "1318760627430232068",
+            "tempoInicio": 1776737138802,
+            "tempoTotal": 7404977,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1776738400349,
+            "tempoTotal": 6143430,
+            "pausado": false
+          }
+        ],
+        [
+          "1399915252744716301",
+          {
+            "nick": "SmithTezzyy",
+            "userId": "1399915252744716301",
+            "tempoInicio": 1776740922586,
+            "tempoTotal": 3690051,
+            "pausado": false
+          }
+        ],
+        [
+          "889485724699746324",
+          {
+            "nick": "Spotk",
+            "userId": "889485724699746324",
+            "tempoInicio": 1776740900634,
+            "tempoTotal": 3643145,
+            "pausado": false
+          }
+        ],
+        [
+          "427599422839455745",
+          {
+            "nick": "Xiitos",
+            "userId": "427599422839455745",
+            "tempoInicio": 1776741393843,
+            "tempoTotal": 3149936,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776737032775,
+      "finalizadoEm": 1776744543783,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1495968161521074269"
+    }
+  ],
+  [
+    "event_1776744826776_1276439186513203234",
+    {
+      "id": "event_1776744826776_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "coleta martlock portal",
+      "descricao": "coleta martlock portal",
+      "requisitos": "coleta martlock portal",
+      "horario": "04:13",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1496000975385792632",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776744838866,
+            "tempoTotal": 5065748,
+            "pausado": false
+          }
+        ],
+        [
+          "889485724699746324",
+          {
+            "nick": "Spotk",
+            "userId": "889485724699746324",
+            "tempoInicio": 1776744838866,
+            "tempoTotal": 5065748,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1776745184357,
+            "tempoTotal": 4720257,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776744838866,
+      "finalizadoEm": 1776749904614,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1496000977461837926"
+    }
+  ],
+  [
+    "event_1776873479200_1276439186513203234",
+    {
+      "id": "event_1776873479200_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "roaming 4.2 martlock",
+      "descricao": "roaming 4.2 martlock",
+      "requisitos": "4.2",
+      "horario": "15:57",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1496540583622213672",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776873487110,
+            "tempoTotal": 207389,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1776873569283,
+            "tempoTotal": 125216,
+            "pausado": false
+          }
+        ],
+        [
+          "255414264158748682",
+          {
+            "nick": "sagresmini",
+            "userId": "255414264158748682",
+            "tempoInicio": 1776873571783,
+            "tempoTotal": 122716,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1776873592475,
+            "tempoTotal": 102024,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776873487110,
+      "finalizadoEm": 1776873694499,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1496540589179666593"
+    }
+  ],
+  [
+    "event_1776876051325_1276439186513203234",
+    {
+      "id": "event_1776876051325_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Roa 4.2 mart",
+      "descricao": "Roa 4.2 mart",
+      "requisitos": "Roa 4.2 mart",
+      "horario": "19:40",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1496551371216912454",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776876068978,
+            "tempoTotal": 22033,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1776876077170,
+            "tempoTotal": 13841,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1776876078061,
+            "tempoTotal": 12950,
+            "pausado": false
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoInicio": 1776876078481,
+            "tempoTotal": 12530,
+            "pausado": false
+          }
+        ],
+        [
+          "255414264158748682",
+          {
+            "nick": "sagresmini",
+            "userId": "255414264158748682",
+            "tempoInicio": 1776876082065,
+            "tempoTotal": 8946,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776876068978,
+      "finalizadoEm": 1776876091011,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1496551374094340106"
+    }
+  ],
+  [
+    "event_1776878984697_1276439186513203234",
+    {
+      "id": "event_1776878984697_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "roaming 4.2 martlock 17:30",
+      "descricao": "roaming 4.2 martlock 17:30",
+      "requisitos": "roaming 4.2 martlock 17:30",
+      "horario": "17:30",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1496563674872025098",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776878990766,
+            "tempoTotal": 6744092,
+            "pausado": false
+          }
+        ],
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoInicio": 1776878991085,
+            "tempoTotal": 6743773,
+            "pausado": false
+          }
+        ],
+        [
+          "514559202400796697",
+          {
+            "nick": ".Porquitchonna",
+            "userId": "514559202400796697",
+            "tempoInicio": 1776878991217,
+            "tempoTotal": 6743641,
+            "pausado": false
+          }
+        ],
+        [
+          "255414264158748682",
+          {
+            "nick": "sagresmini",
+            "userId": "255414264158748682",
+            "tempoInicio": 1776878994422,
+            "tempoTotal": 6740436,
+            "pausado": false
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoInicio": null,
+            "tempoTotal": 6472118,
+            "pausado": true
+          }
+        ],
+        [
+          "478996305440669707",
+          {
+            "nick": ".VULT0",
+            "userId": "478996305440669707",
+            "tempoInicio": 1776879000341,
+            "tempoTotal": 6734517,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1776879003991,
+            "tempoTotal": 6730867,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": null,
+            "tempoTotal": 5398,
+            "pausado": true
+          }
+        ],
+        [
+          "833005544477556756",
+          {
+            "nick": ".MaxHardcore",
+            "userId": "833005544477556756",
+            "tempoInicio": 1776879462821,
+            "tempoTotal": 6272037,
+            "pausado": false
+          }
+        ],
+        [
+          "546245484243714049",
+          {
+            "nick": "Kotoe NEW",
+            "userId": "546245484243714049",
+            "tempoInicio": 1776882748570,
+            "tempoTotal": 2986288,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776878990766,
+      "finalizadoEm": 1776885734858,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1496563677531214015"
+    }
+  ],
+  [
+    "event_1776889742007_1276439186513203234",
+    {
+      "id": "event_1776889742007_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Raid Fast Build 4.3 Marltlock",
+      "descricao": "Raid Fast Build 4.3 Marltlock",
+      "requisitos": "Raid Fast Build 4.3 Marltlock",
+      "horario": "20:30",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1496608794325684506",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "141956603690745857",
+          {
+            "nick": "nakabayashi",
+            "userId": "141956603690745857",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "!Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "478996305440669707",
+          {
+            "nick": ".VULT0",
+            "userId": "478996305440669707",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "698204412342173816",
+          {
+            "nick": "avven1996",
+            "userId": "698204412342173816",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ],
+        [
+          "538294711836999681",
+          {
+            "nick": "Tistao",
+            "userId": "538294711836999681",
+            "tempoInicio": 1776894453904,
+            "tempoTotal": 7394,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776894453904,
+      "finalizadoEm": 1776894461298,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1496608797437722745"
+    }
+  ],
+  [
+    "event_1776957944542_244264130234679296",
+    {
+      "id": "event_1776957944542_244264130234679296",
+      "guildId": "1480232409105699030",
+      "nome": "QUALQUER COISA DO NAGA",
+      "descricao": "T8",
+      "requisitos": "UHU",
+      "horario": "AGORA",
+      "criadorId": "244264130234679296",
+      "criadorTag": "nagacaburos.",
+      "canalVozId": "1496894856260227212",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776959908370,
+            "tempoTotal": 5400192,
+            "pausado": false
+          }
+        ],
+        [
+          "244264130234679296",
+          {
+            "nick": "!Nagacaburos",
+            "userId": "244264130234679296",
+            "tempoInicio": 1776959908370,
+            "tempoTotal": 5400192,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1776959908370,
+            "tempoTotal": 5400192,
+            "pausado": false
+          }
+        ],
+        [
+          "427599422839455745",
+          {
+            "nick": "Xiitos",
+            "userId": "427599422839455745",
+            "tempoInicio": 1776959908370,
+            "tempoTotal": 5400192,
+            "pausado": false
+          }
+        ],
+        [
+          "975493913718718555",
+          {
+            "nick": "coelhao",
+            "userId": "975493913718718555",
+            "tempoInicio": null,
+            "tempoTotal": 2207480,
+            "pausado": true
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1776959908370,
+            "tempoTotal": 5400192,
+            "pausado": false
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoInicio": 1776959908370,
+            "tempoTotal": 5400192,
+            "pausado": false
+          }
+        ],
+        [
+          "514559202400796697",
+          {
+            "nick": ".Porquitchonna",
+            "userId": "514559202400796697",
+            "tempoInicio": 1776962557718,
+            "tempoTotal": 2750844,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776959908370,
+      "finalizadoEm": 1776965308562,
+      "pausadoGlobal": false,
+      "trancado": true,
+      "messageId": "1496894859074601161"
+    }
+  ],
+  [
+    "event_1776974270003_1276439186513203234",
+    {
+      "id": "event_1776974270003_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Raid Avalon Agora 20h UTC Martlock",
+      "descricao": "Weapon 6.4 / build 6.3 / Cape 5.4",
+      "requisitos": "6.4 weapon",
+      "horario": "20:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1496963330164658338",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "423268983505027074",
+          {
+            "nick": "Minemin",
+            "userId": "423268983505027074",
+            "tempoInicio": 1776974304847,
+            "tempoTotal": 11699766,
+            "pausado": false
+          }
+        ],
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1776974304847,
+            "tempoTotal": 11699766,
+            "pausado": false
+          }
+        ],
+        [
+          "244264130234679296",
+          {
+            "nick": "!Nagacaburos",
+            "userId": "244264130234679296",
+            "tempoInicio": 1776974314533,
+            "tempoTotal": 11690080,
+            "pausado": false
+          }
+        ],
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoInicio": 1776974317342,
+            "tempoTotal": 11687271,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "!Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1776974323242,
+            "tempoTotal": 11681371,
+            "pausado": false
+          }
+        ],
+        [
+          "478996305440669707",
+          {
+            "nick": ".VULT0",
+            "userId": "478996305440669707",
+            "tempoInicio": 1776974339238,
+            "tempoTotal": 11665375,
+            "pausado": false
+          }
+        ],
+        [
+          "698204412342173816",
+          {
+            "nick": "avven1996",
+            "userId": "698204412342173816",
+            "tempoInicio": 1776974362641,
+            "tempoTotal": 11641972,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1776974438805,
+            "tempoTotal": 11565808,
+            "pausado": false
+          }
+        ],
+        [
+          "427599422839455745",
+          {
+            "nick": "Xiitos",
+            "userId": "427599422839455745",
+            "tempoInicio": null,
+            "tempoTotal": 7185119,
+            "pausado": true
+          }
+        ],
+        [
+          "1434597427478007974",
+          {
+            "nick": ".Caxa00 /join Horsix",
+            "userId": "1434597427478007974",
+            "tempoInicio": 1776974547524,
+            "tempoTotal": 11457089,
+            "pausado": false
+          }
+        ],
+        [
+          "538294711836999681",
+          {
+            "nick": "Tistao",
+            "userId": "538294711836999681",
+            "tempoInicio": 1776974555772,
+            "tempoTotal": 11448841,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1776974658050,
+            "tempoTotal": 11346563,
+            "pausado": false
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoInicio": 1776976452787,
+            "tempoTotal": 9551826,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1776977864586,
+            "tempoTotal": 8140027,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1776974304847,
+      "finalizadoEm": 1776986004613,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1496963333343936602"
+    }
+  ],
+  [
+    "event_1777031057637_1276439186513203234",
+    {
+      "id": "event_1777031057637_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Coleta Black Martlock",
+      "descricao": "Coleta Black Martlock",
+      "requisitos": "Coleta Black Martlock",
+      "horario": "11:41",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1497201515201564696",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1777031063868,
+            "tempoTotal": 16200218,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1777032413463,
+            "tempoTotal": 14850623,
+            "pausado": false
+          }
+        ],
+        [
+          "833005544477556756",
+          {
+            "nick": ".MaxHardcore",
+            "userId": "833005544477556756",
+            "tempoInicio": null,
+            "tempoTotal": 5341,
+            "pausado": true
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1777037487726,
+            "tempoTotal": 9776360,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "!Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": null,
+            "tempoTotal": 11334,
+            "pausado": true
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": null,
+            "tempoTotal": 1947,
+            "pausado": true
+          }
+        ],
+        [
+          "255414264158748682",
+          {
+            "nick": "sagresmini",
+            "userId": "255414264158748682",
+            "tempoInicio": null,
+            "tempoTotal": 828910,
+            "pausado": true
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777031063868,
+      "finalizadoEm": 1777047264086,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1497201517411696780"
+    }
+  ],
+  [
+    "event_1777067953945_1276439186513203234",
+    {
+      "id": "event_1777067953945_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Roaming T7",
+      "descricao": "Roaming T7",
+      "requisitos": "Roaming T7",
+      "horario": "22:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1497356269768675409",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "!Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "478996305440669707",
+          {
+            "nick": ".VULT0",
+            "userId": "478996305440669707",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "766002778631045161",
+          {
+            "nick": "SShadowless",
+            "userId": "766002778631045161",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "1434597427478007974",
+          {
+            "nick": ".Caxa /join Horsix",
+            "userId": "1434597427478007974",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "766727465652453407",
+          {
+            "nick": "Dsn",
+            "userId": "766727465652453407",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "761058796357156875",
+          {
+            "nick": "ZK03",
+            "userId": "761058796357156875",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "539488665663963165",
+          {
+            "nick": ".goncalves23",
+            "userId": "539488665663963165",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ],
+        [
+          "400497884648177665",
+          {
+            "nick": ".Davimix",
+            "userId": "400497884648177665",
+            "tempoInicio": 1777075169721,
+            "tempoTotal": 405175,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777075169721,
+      "finalizadoEm": 1777075574896,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1497356272335589556"
+    }
+  ],
+  [
+    "event_1777122553940_1276439186513203234",
+    {
+      "id": "event_1777122553940_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Coletar > Black > Martlock 13h05 utc  game",
+      "descricao": "estou upando coleta quer vir?\nestou transmitindo tela",
+      "requisitos": "4.2 minimo (coletor ou fight)",
+      "horario": "13:05",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1497585278217355424",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1777122560672,
+            "tempoTotal": 16967065,
+            "pausado": false
+          }
+        ],
+        [
+          "952462089883103243",
+          {
+            "nick": ".Xotinhadecoco",
+            "userId": "952462089883103243",
+            "tempoInicio": null,
+            "tempoTotal": 8245750,
+            "pausado": true
+          }
+        ],
+        [
+          "539488665663963165",
+          {
+            "nick": ".goncalves23",
+            "userId": "539488665663963165",
+            "tempoInicio": 1777124175507,
+            "tempoTotal": 15352230,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": null,
+            "tempoTotal": 5680281,
+            "pausado": true
+          }
+        ],
+        [
+          "1318760627430232068",
+          {
+            "nick": ".Sabedoria7",
+            "userId": "1318760627430232068",
+            "tempoInicio": null,
+            "tempoTotal": 10969,
+            "pausado": true
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777122560672,
+      "finalizadoEm": 1777139527737,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1497585281040384000"
+    }
+  ],
+  [
+    "event_1777140215819_1276439186513203234",
+    {
+      "id": "event_1777140215819_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Roaming T6 + OC + Tools Gathering > Martlock",
+      "descricao": "Martlock Portal / Build t6 + OverCharge",
+      "requisitos": "T6 equivalente",
+      "horario": "18:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1497659357393846403",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1777140229128,
+            "tempoTotal": 8201997,
+            "pausado": false
+          }
+        ],
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoInicio": 1777140230917,
+            "tempoTotal": 8200208,
+            "pausado": false
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": null,
+            "tempoTotal": 786530,
+            "pausado": true
+          }
+        ],
+        [
+          "539488665663963165",
+          {
+            "nick": ".goncalves23",
+            "userId": "539488665663963165",
+            "tempoInicio": 1777140424861,
+            "tempoTotal": 8006264,
+            "pausado": false
+          }
+        ],
+        [
+          "1318760627430232068",
+          {
+            "nick": ".Sabedoria7",
+            "userId": "1318760627430232068",
+            "tempoInicio": null,
+            "tempoTotal": 2574,
+            "pausado": true
+          }
+        ],
+        [
+          "761058796357156875",
+          {
+            "nick": "ZK03",
+            "userId": "761058796357156875",
+            "tempoInicio": 1777140770540,
+            "tempoTotal": 7660585,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1777142898439,
+            "tempoTotal": 5532686,
+            "pausado": false
+          }
+        ],
+        [
+          "833005544477556756",
+          {
+            "nick": ".MaxHardcore",
+            "userId": "833005544477556756",
+            "tempoInicio": null,
+            "tempoTotal": 3986,
+            "pausado": true
+          }
+        ],
+        [
+          "952462089883103243",
+          {
+            "nick": ".Xotinhadecoco",
+            "userId": "952462089883103243",
+            "tempoInicio": null,
+            "tempoTotal": 3726,
+            "pausado": true
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777140229128,
+      "finalizadoEm": 1777148431125,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1497659360321605664"
+    }
+  ],
+  [
+    "event_1777152649459_1276439186513203234",
+    {
+      "id": "event_1777152649459_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Defender HO - Martlock > Loch Tier 7 + OC",
+      "descricao": "Defender HO - Martlock > Loch Tier 7 + OC",
+      "requisitos": "Defender HO - Martlock > Loch Tier 7 + OC",
+      "horario": "21:30",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1497711507931136253",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1777152657218,
+            "tempoTotal": 8818053,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1777152670601,
+            "tempoTotal": 8804670,
+            "pausado": false
+          }
+        ],
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoInicio": 1777152777598,
+            "tempoTotal": 8697673,
+            "pausado": false
+          }
+        ],
+        [
+          "698204412342173816",
+          {
+            "nick": "avven1996",
+            "userId": "698204412342173816",
+            "tempoInicio": 1777152792269,
+            "tempoTotal": 8683002,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1777152804420,
+            "tempoTotal": 8670851,
+            "pausado": false
+          }
+        ],
+        [
+          "766727465652453407",
+          {
+            "nick": "Dsn",
+            "userId": "766727465652453407",
+            "tempoInicio": 1777152812993,
+            "tempoTotal": 8662278,
+            "pausado": false
+          }
+        ],
+        [
+          "469574895014248448",
+          {
+            "nick": "XlShanksXl",
+            "userId": "469574895014248448",
+            "tempoInicio": 1777152815504,
+            "tempoTotal": 8659767,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1777153376933,
+            "tempoTotal": 8098338,
+            "pausado": false
+          }
+        ],
+        [
+          "761058796357156875",
+          {
+            "nick": "ZK03",
+            "userId": "761058796357156875",
+            "tempoInicio": 1777153535465,
+            "tempoTotal": 7939806,
+            "pausado": false
+          }
+        ],
+        [
+          "833005544477556756",
+          {
+            "nick": ".MaxHardcore",
+            "userId": "833005544477556756",
+            "tempoInicio": 1777153542253,
+            "tempoTotal": 7933018,
+            "pausado": false
+          }
+        ],
+        [
+          "255414264158748682",
+          {
+            "nick": "sagresmini",
+            "userId": "255414264158748682",
+            "tempoInicio": 1777153573370,
+            "tempoTotal": 7901901,
+            "pausado": false
+          }
+        ],
+        [
+          "423268983505027074",
+          {
+            "nick": "Minemin",
+            "userId": "423268983505027074",
+            "tempoInicio": null,
+            "tempoTotal": 2507090,
+            "pausado": true
+          }
+        ],
+        [
+          "600614116587208704",
+          {
+            "nick": "mariomalan",
+            "userId": "600614116587208704",
+            "tempoInicio": 1777155046314,
+            "tempoTotal": 6428957,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "!Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1777155258720,
+            "tempoTotal": 6216551,
+            "pausado": false
+          }
+        ],
+        [
+          "546245484243714049",
+          {
+            "nick": "Kotoe NEW",
+            "userId": "546245484243714049",
+            "tempoInicio": 1777156513460,
+            "tempoTotal": 4961811,
+            "pausado": false
+          }
+        ],
+        [
+          "400497884648177665",
+          {
+            "nick": ".Davimix",
+            "userId": "400497884648177665",
+            "tempoInicio": null,
+            "tempoTotal": 2645323,
+            "pausado": true
+          }
+        ],
+        [
+          "326472856206835713",
+          {
+            "nick": ".MonetaryMike",
+            "userId": "326472856206835713",
+            "tempoInicio": 1777161334160,
+            "tempoTotal": 141111,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777152657218,
+      "finalizadoEm": 1777161475271,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1497711510091468983"
+    }
+  ],
+  [
+    "raid_1777213662266_1276439186513203234",
+    {
+      "nome": "Raid Avalon 17 UTC > Marlock Portal > Build T7+",
+      "descricao": "Tier minimo : Tier 7 (4.3)\nFrom: Martlock Portal\nRaid 8+ if 10+ players\n\n1x Martelo + Incubus\n1x Incubus + Enig\n1x Healer + Reset\n1x Looter + Healer + Reset\n1x Sup\n15x DPS PVE :\n >robe druid / druid cowl / hood assassin",
+      "horario": "17:00",
+      "limiteTotal": 21,
+      "classes": {
+        "tank": {
+          "limite": 2,
+          "participantes": [
+            {
+              "userId": "1276439186513203234",
+              "nick": "!Tmaiusculo.",
+              "arma": "Martelo",
+              "classe": "tank",
+              "joinedAt": 1777213695408,
+              "tempoTotal": 67740
+            }
+          ]
+        },
+        "healer": {
+          "limite": 2,
+          "participantes": [
+            {
+              "userId": "458026581361950780",
+              "nick": ".BSAlGunner",
+              "arma": "Raiz-ferrea",
+              "classe": "healer",
+              "joinedAt": 1777214730874,
+              "tempoTotal": 67740
+            }
+          ]
+        },
+        "dps": {
+          "limite": 15,
+          "participantes": [
+            {
+              "userId": "423268983505027074",
+              "nick": "Minemin",
+              "arma": "Fura-bruma",
+              "classe": "dps",
+              "joinedAt": 1777213724533,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "125256468071972864",
+              "nick": "felp22felipecarvalho",
+              "arma": "Fura-bruma",
+              "classe": "dps",
+              "joinedAt": 1777213986298,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "1434597427478007974",
+              "nick": ".Caxa",
+              "arma": "Foice-de-cristal",
+              "classe": "dps",
+              "joinedAt": 1777214315158,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "538294711836999681",
+              "nick": "Tistao",
+              "arma": "Foice-de-cristal",
+              "classe": "dps",
+              "joinedAt": 1777214365184,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "833005544477556756",
+              "nick": ".MaxHardcore",
+              "arma": "Fulgurante",
+              "classe": "dps",
+              "joinedAt": 1777214641689,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "469574895014248448",
+              "nick": "XlShanksXl",
+              "arma": "Fura-bruma",
+              "classe": "dps",
+              "joinedAt": 1777214757813,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "1353067794274717768",
+              "nick": "Est3r",
+              "arma": "Foice-de-cristal",
+              "classe": "dps",
+              "joinedAt": 1777215774890,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "367435864894210049",
+              "nick": ".killme",
+              "arma": "Aguia",
+              "classe": "dps",
+              "joinedAt": 1777215786650,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "1009214812791771136",
+              "nick": "Saskmot",
+              "arma": "Repetidor",
+              "classe": "dps",
+              "joinedAt": 1777215857937,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "275412641847967745",
+              "nick": "zNeii",
+              "arma": "Fura-bruma",
+              "classe": "dps",
+              "joinedAt": 1777216023000,
+              "tempoTotal": 67740
+            },
+            {
+              "userId": "761058796357156875",
+              "nick": "ZK03",
+              "arma": "Fura-bruma",
+              "classe": "dps",
+              "joinedAt": 1777218197729,
+              "tempoTotal": 67740
+            }
+          ]
+        },
+        "suporte": {
+          "limite": 1,
+          "participantes": [
+            {
+              "userId": "698204412342173816",
+              "nick": "avven1996",
+              "arma": "Chama-sombra",
+              "classe": "suporte",
+              "joinedAt": 1777213684452,
+              "tempoTotal": 67740
+            }
+          ]
+        },
+        "scout": {
+          "limite": 1,
+          "participantes": []
+        }
+      },
+      "id": "raid_1777213662266_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1497967414095249588",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "messageId": "1497967416972677342",
+      "tipo": "raid_avalon",
+      "inicioTimestamp": 1777221175969,
+      "finalizadoEm": 1777221245340,
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "tank",
+            "arma": "Martelo"
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "healer",
+            "arma": "Raiz-ferrea"
+          }
+        ],
+        [
+          "423268983505027074",
+          {
+            "nick": "Minemin",
+            "userId": "423268983505027074",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Fura-bruma"
+          }
+        ],
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Fura-bruma"
+          }
+        ],
+        [
+          "1434597427478007974",
+          {
+            "nick": ".Caxa",
+            "userId": "1434597427478007974",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Foice-de-cristal"
+          }
+        ],
+        [
+          "538294711836999681",
+          {
+            "nick": "Tistao",
+            "userId": "538294711836999681",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Foice-de-cristal"
+          }
+        ],
+        [
+          "833005544477556756",
+          {
+            "nick": ".MaxHardcore",
+            "userId": "833005544477556756",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Fulgurante"
+          }
+        ],
+        [
+          "469574895014248448",
+          {
+            "nick": "XlShanksXl",
+            "userId": "469574895014248448",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Fura-bruma"
+          }
+        ],
+        [
+          "1353067794274717768",
+          {
+            "nick": "Est3r",
+            "userId": "1353067794274717768",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Foice-de-cristal"
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Aguia"
+          }
+        ],
+        [
+          "1009214812791771136",
+          {
+            "nick": "Saskmot",
+            "userId": "1009214812791771136",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Repetidor"
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Fura-bruma"
+          }
+        ],
+        [
+          "761058796357156875",
+          {
+            "nick": "ZK03",
+            "userId": "761058796357156875",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "dps",
+            "arma": "Fura-bruma"
+          }
+        ],
+        [
+          "698204412342173816",
+          {
+            "nick": "avven1996",
+            "userId": "698204412342173816",
+            "tempoTotal": 67740,
+            "pausado": false,
+            "classe": "suporte",
+            "arma": "Chama-sombra"
+          }
+        ]
+      ]
+    }
+  ],
+  [
+    "event_1777221297036_1276439186513203234",
+    {
+      "id": "event_1777221297036_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Raid Ava > Marlock > Build 4.3 > 17h UTC",
+      "descricao": "Raid Ava > Marlock > Build 4.3 > 17h UTC",
+      "requisitos": "Raid Ava > Marlock > Build 4.3 > 17h UTC",
+      "horario": "17:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1497999436436213812",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoInicio": null,
+            "tempoTotal": 4109101,
+            "pausado": false
+          }
+        ],
+        [
+          "423268983505027074",
+          {
+            "nick": "Minemin",
+            "userId": "423268983505027074",
+            "tempoInicio": null,
+            "tempoTotal": 4109101,
+            "pausado": false
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": null,
+            "tempoTotal": 4109101,
+            "pausado": false
+          }
+        ],
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": null,
+            "tempoTotal": 4109101,
+            "pausado": false
+          }
+        ],
+        [
+          "698204412342173816",
+          {
+            "nick": "avven1996",
+            "userId": "698204412342173816",
+            "tempoInicio": null,
+            "tempoTotal": 4089106,
+            "pausado": false
+          }
+        ],
+        [
+          "538294711836999681",
+          {
+            "nick": "Tistao",
+            "userId": "538294711836999681",
+            "tempoInicio": null,
+            "tempoTotal": 4050742,
+            "pausado": false
+          }
+        ],
+        [
+          "1009214812791771136",
+          {
+            "nick": "Saskmot",
+            "userId": "1009214812791771136",
+            "tempoInicio": null,
+            "tempoTotal": 4042044,
+            "pausado": false
+          }
+        ],
+        [
+          "1353067794274717768",
+          {
+            "nick": "Est3r",
+            "userId": "1353067794274717768",
+            "tempoInicio": null,
+            "tempoTotal": 3894986,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": null,
+            "tempoTotal": 3320610,
+            "pausado": false
+          }
+        ],
+        [
+          "761058796357156875",
+          {
+            "nick": "ZK03",
+            "userId": "761058796357156875",
+            "tempoInicio": null,
+            "tempoTotal": 3126425,
+            "pausado": false
+          }
+        ],
+        [
+          "275412641847967745",
+          {
+            "nick": "zNeii",
+            "userId": "275412641847967745",
+            "tempoInicio": null,
+            "tempoTotal": 2920794,
+            "pausado": false
+          }
+        ],
+        [
+          "478996305440669707",
+          {
+            "nick": ".VULT0",
+            "userId": "478996305440669707",
+            "tempoInicio": null,
+            "tempoTotal": 2770394,
+            "pausado": true
+          }
+        ],
+        [
+          "244264130234679296",
+          {
+            "nick": "!Nagacaburos",
+            "userId": "244264130234679296",
+            "tempoInicio": null,
+            "tempoTotal": 1097242,
+            "pausado": true
+          }
+        ],
+        [
+          "469574895014248448",
+          {
+            "nick": "XlShanksXl",
+            "userId": "469574895014248448",
+            "tempoInicio": null,
+            "tempoTotal": 2640366,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777221314920,
+      "finalizadoEm": 1777229041845,
+      "pausadoGlobal": true,
+      "trancado": false,
+      "messageId": "1497999438705201273"
+    }
+  ],
+  [
+    "event_1777278724664_1276439186513203234",
+    {
+      "id": "event_1777278724664_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "FULGURANTE ORB VE3RDE",
+      "descricao": "OK",
+      "requisitos": "OK",
+      "horario": "05:29",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1498240305273766000",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1777278748375,
+            "tempoTotal": 5055,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777278748375,
+      "finalizadoEm": 1777278753430,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1498240308637466715"
+    }
+  ],
+  [
+    "event_1777318332259_1276439186513203234",
+    {
+      "id": "event_1777318332259_1276439186513203234",
+      "guildId": "1480232409105699030",
+      "nome": "Raid Avalon 21h UTC > MartLock > Build 5.3",
+      "descricao": "Martelo / Incubus\nIncubus\nKrosta / Corrompido\nRaiz / Corrompido\nShadow Caller\nEnig\nDPS Melee > Foice Cristal (Reaper)\nDPS Ranged > Fura Bruma (MistPiercer)\n\nSwap > Cowl Druid\nSet Skip (Ant Ganker)",
+      "requisitos": "Arma e Build T8 Equivalente (5.3 / 6.2 / 7.1 / 8.0)",
+      "horario": "21:00",
+      "criadorId": "1276439186513203234",
+      "criadorTag": "prometheux0800",
+      "canalVozId": "1498406435296641134",
+      "canalTextoId": "1481397657065754797",
+      "status": "encerrado",
+      "participantes": [
+        [
+          "469574895014248448",
+          {
+            "nick": "XlShanksXl",
+            "userId": "469574895014248448",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "887386257016098816",
+          {
+            "nick": "Dorfiuses",
+            "userId": "887386257016098816",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "766727465652453407",
+          {
+            "nick": "Dsn",
+            "userId": "766727465652453407",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "1276439186513203234",
+          {
+            "nick": "!Tmaiusculo.",
+            "userId": "1276439186513203234",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "913832976784166923",
+          {
+            "nick": "SoulTavio",
+            "userId": "913832976784166923",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "514559202400796697",
+          {
+            "nick": ".Porquitchonna",
+            "userId": "514559202400796697",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "125256468071972864",
+          {
+            "nick": "felp22felipecarvalho",
+            "userId": "125256468071972864",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "340605653959835658",
+          {
+            "nick": "RobertXVll (madok)",
+            "userId": "340605653959835658",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "698204412342173816",
+          {
+            "nick": "avven1996",
+            "userId": "698204412342173816",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "899398727645687818",
+          {
+            "nick": "Jokker1998",
+            "userId": "899398727645687818",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "367435864894210049",
+          {
+            "nick": ".killme",
+            "userId": "367435864894210049",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "334126478457307136",
+          {
+            "nick": "!Cominhos",
+            "userId": "334126478457307136",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "546245484243714049",
+          {
+            "nick": "Kotoe NEW",
+            "userId": "546245484243714049",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "952462089883103243",
+          {
+            "nick": ".Xotinhadecoco",
+            "userId": "952462089883103243",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "1318760627430232068",
+          {
+            "nick": ".Sabedoria7",
+            "userId": "1318760627430232068",
+            "tempoInicio": 1777329852758,
+            "tempoTotal": 3686560,
+            "pausado": false
+          }
+        ],
+        [
+          "833005544477556756",
+          {
+            "nick": ".MaxHardcore",
+            "userId": "833005544477556756",
+            "tempoInicio": null,
+            "tempoTotal": 3142,
+            "pausado": true
+          }
+        ],
+        [
+          "458026581361950780",
+          {
+            "nick": ".BSAlGunner",
+            "userId": "458026581361950780",
+            "tempoInicio": 1777332436852,
+            "tempoTotal": 1102466,
+            "pausado": false
+          }
+        ]
+      ],
+      "inicioTimestamp": 1777329852758,
+      "finalizadoEm": 1777333539318,
+      "pausadoGlobal": false,
+      "trancado": false,
+      "messageId": "1498406438312083537"
+    }
   ]
 ]
