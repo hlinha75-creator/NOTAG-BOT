@@ -1,0 +1,9 @@
+data/
+*.db
+*.csv
+active_raids.json
+finished_events.json
+pending_finance.json
+simulations.json
+node_modules/
+.env
