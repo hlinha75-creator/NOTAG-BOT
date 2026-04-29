@@ -683,13 +683,18 @@ class RaidAvalonHandler {
   /**
    * Processa seleção de arma e adiciona participante
    */
+  /**
+   * Processa seleção de arma e adiciona participante
+   */
   static async processWeaponSelect(interaction, raidId, classKey, weaponKey) {
+    // ✅ CORREÇÃO: deferReply IMEDIATO para evitar timeout de 3s do Discord
+    await interaction.deferReply({ ephemeral: true });
+
     try {
       const raidData = global.activeRaids?.get(raidId);
       if (!raidData) {
-        return interaction.reply({
-          content: '❌ Raid não encontrada!',
-          ephemeral: true
+        return interaction.editReply({
+          content: '❌ Raid não encontrada!'
         });
       }
 
@@ -734,42 +739,42 @@ class RaidAvalonHandler {
       const setSkipPath = `png/raid/set-skip.png`;
 
       try {
-        await interaction.reply({
+        await interaction.editReply({
           content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
             `⚔️ **Arma:** ${armaNome}\n` +
             `📋 **Set recomendado:**`,
-          files: [armaImagePath, setSkipPath],
-          ephemeral: true
+          files: [armaImagePath, setSkipPath]
         });
       } catch (imgError) {
-        // Tentar enviar só o set se a imagem da arma não existir
         try {
-          await interaction.reply({
+          await interaction.editReply({
             content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
               `⚔️ **Arma:** ${armaNome}\n` +
               `📋 **Set recomendado:**`,
-            files: [setSkipPath],
-            ephemeral: true
+            files: [setSkipPath]
           });
         } catch (setError) {
-          // Se nem o set existir, envia sem imagens
-          await interaction.reply({
+          await interaction.editReply({
             content: `✅ **Você entrou na raid como ${classKey.toUpperCase()}!**\n\n` +
               `⚔️ **Arma:** ${armaNome}\n\n` +
-              `⚠️ *Imagens do set não encontradas.*`,
-            ephemeral: true
+              `⚠️ *Imagens do set não encontradas.*`
           });
         }
       }
 
     } catch (error) {
       console.error('[RaidAvalon] Error processing weapon select:', error);
-      await interaction.reply({
-        content: '❌ Erro ao processar seleção.',
-        ephemeral: true
-      });
+      // ✅ Sempre editReply pois já fizemos deferReply
+      try {
+        await interaction.editReply({
+          content: '❌ Erro ao processar seleção.'
+        });
+      } catch (e) {
+        // Interação expirou, ignorar silenciosamente
+      }
     }
   }
+
 
   /**
    * Retorna armas disponíveis por classe ✅ ATUALIZADO

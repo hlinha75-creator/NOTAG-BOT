@@ -589,19 +589,22 @@ client.on(Events.VoiceStateUpdate, async (oldState, newState) => {
 
 // ==================== HANDLER PRINCIPAL DE INTERAÇÕES ====================
 client.on(Events.InteractionCreate, async interaction => {
- try {
- // ✅ CORREÇÃO CRÍTICA: Verificar duplicação GLOBAL antes de qualquer processamento
- if (isInteractionProcessed(interaction.id)) {
- console.log(`[InteractionCreate] Interação ${interaction.id} já processada. Ignorando duplicação.`);
- return;
- }
+  // ✅ CORREÇÃO: Declarar ANTES do try para evitar ReferenceError no catch
+  const userId = interaction.user?.id ?? null;
+  const commandKey = getCommandKey(interaction);
 
- // Log da interação recebida
- console.log(`[InteractionCreate] Tipo: ${interaction.type} | ID: ${interaction.id} | Usuário: ${interaction.user?.id}`);
+  try {
+    // ✅ CORREÇÃO CRÍTICA: Verificar duplicação GLOBAL antes de qualquer processamento
+    if (isInteractionProcessed(interaction.id)) {
+      console.log(`[InteractionCreate] Interação ${interaction.id} já processada. Ignorando duplicação.`);
+      return;
+    }
 
- // ✅ CORREÇÃO CRÍTICA: Verificar lock por usuário+comando para prevenir race conditions
- const commandKey = getCommandKey(interaction);
- const userId = interaction.user.id;
+    // Log da interação recebida
+    console.log(`[InteractionCreate] Tipo: ${interaction.type} | ID: ${interaction.id} | Usuário: ${interaction.user?.id}`);
+
+    // ✅ CORREÇÃO CRÍTICA: Verificar lock por usuário+comando para prevenir race conditions
+
 
  if (!acquireLock(userId, commandKey)) {
  console.log(`[InteractionCreate] Lock ativo para usuário ${userId} no comando ${commandKey}. Ignorando.`);
