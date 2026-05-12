@@ -1027,7 +1027,10 @@ client.on(Events.InteractionCreate, async interaction => {
  // LOOTSPLIT
  if (customId.startsWith('loot_simular_')) {
  const eventId = customId.replace('loot_simular_', '');
- const modal = LootSplitHandler.createSimulationModal(eventId);
+ // Buscar taxa atual da guilda para exibir como padrão no modal
+ const guildConfig = global.guildConfig?.get(interaction.guild?.id) || {};
+ const taxaAtual = guildConfig.taxaGuilda || 10;
+ const modal = LootSplitHandler.createSimulationModal(eventId, taxaAtual);
  await interaction.showModal(modal);
  releaseLock(userId, commandKey);
  return;

@@ -156,7 +156,7 @@ class LootSplitHandler {
 
   // ==================== MODAIS ====================
 
-  static createSimulationModal(eventId) {
+  static createSimulationModal(eventId, taxaAtual = 10) {
     const modal = new ModalBuilder()
       .setCustomId(`modal_simular_evento_${eventId}`)
       .setTitle('💰 Simular Divisão de Loot');
@@ -185,10 +185,19 @@ class LootSplitHandler {
       .setRequired(false)
       .setMaxLength(12);
 
+    const taxaGuildaInput = new TextInputBuilder()
+      .setCustomId('taxa_guilda_override')
+      .setLabel(`💰 Taxa da Guilda (%) [Padrão: ${taxaAtual}%]`)
+      .setPlaceholder(`Deixe em branco para usar o padrão (${taxaAtual}%)`)
+      .setStyle(TextInputStyle.Short)
+      .setRequired(false)
+      .setMaxLength(3);
+
     modal.addComponents(
       new ActionRowBuilder().addComponents(valorTotalInput),
       new ActionRowBuilder().addComponents(valorSacosInput),
-      new ActionRowBuilder().addComponents(valorReparoInput)
+      new ActionRowBuilder().addComponents(valorReparoInput),
+      new ActionRowBuilder().addComponents(taxaGuildaInput)
     );
 
     return modal;
@@ -203,6 +212,7 @@ class LootSplitHandler {
       const valorTotal = parseInt(interaction.fields.getTextInputValue('valor_total'));
       const valorSacosInput = interaction.fields.getTextInputValue('valor_sacos');
       const valorReparoInput = interaction.fields.getTextInputValue('valor_reparo');
+      const taxaOverrideInput = interaction.fields.getTextInputValue('taxa_guilda_override');
 
       if (isNaN(valorTotal) || valorTotal <= 0) {
         return interaction.reply({
@@ -219,6 +229,18 @@ class LootSplitHandler {
           content: '❌ Valores de sacos ou reparo inválidos!',
           ephemeral: true
         });
+      }
+
+      // Validar taxa override se fornecida
+      let taxaOverride = null;
+      if (taxaOverrideInput && taxaOverrideInput.trim() !== '') {
+        taxaOverride = parseInt(taxaOverrideInput);
+        if (isNaN(taxaOverride) || taxaOverride < 0 || taxaOverride > 100) {
+          return interaction.reply({
+            content: '❌ Taxa da guilda inválida! Digite um número entre 0 e 100.',
+            ephemeral: true
+          });
+        }
       }
 
       let eventData = global.activeEvents.get(eventId);
@@ -246,7 +268,8 @@ class LootSplitHandler {
       console.log(`[LootSplit] Evento ${eventId} - GuildId: ${guildId}`);
 
       const config = global.guildConfig?.get(guildId) || {};
-      const taxaGuilda = config.taxaGuilda || 10;
+      // Usar taxa override do modal se fornecida, caso contrário usar a configuração padrão da guilda
+      const taxaGuilda = taxaOverride !== null ? taxaOverride : (config.taxaGuilda || 10);
 
       // Calcular tempo total do evento
       let tempoTotalEvento = 0;
@@ -308,6 +331,7 @@ class LootSplitHandler {
         valorReparo,
         valorTaxa,
         taxaGuilda,
+        taxaManual: taxaOverride !== null, // indica se a taxa foi definida manualmente no split
         valorDistribuir,
         distribuicao,
         tempoTotalEvento: tempoTotalEvento,
@@ -371,7 +395,7 @@ class LootSplitHandler {
         `**💎 Valor Base:** \`${simulation.valorTotal.toLocaleString()}\`\n` +
         `**🎒 Sacos (adicional):** \`${simulation.valorSacos.toLocaleString()}\`\n` +
         `**🔧 Reparo:** \`${simulation.valorReparo.toLocaleString()}\`\n` +
-        `**📊 Taxa Guilda (${simulation.taxaGuilda}%):** \`${simulation.valorTaxa.toLocaleString()}\`\n` +
+        `**📊 Taxa Guilda (${simulation.taxaGuilda}%)${simulation.taxaManual ? ' ✏️ manual' : ''}:** \`${simulation.valorTaxa.toLocaleString()}\`\n` +
         `**💵 Valor a Distribuir:** \`${simulation.valorDistribuir.toLocaleString()}\``
       )
       .setColor(0xF1C40F)
@@ -866,7 +890,9 @@ class LootSplitHandler {
         });
       }
 
-      const modal = this.createSimulationModal(simulation.eventId);
+      // Usar a taxa atual da simulação como padrão no recálculo
+      const taxaAtualSimulacao = simulation.taxaGuilda || 10;
+      const modal = this.createSimulationModal(simulation.eventId, taxaAtualSimulacao);
       await interaction.showModal(modal);
 
     } catch (error) {
