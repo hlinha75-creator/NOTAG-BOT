@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "db:migrate": "node scripts/migrate.js"
+    "db:migrate": "node scripts/migrate.js",
+    "pre-deploy": "node scripts/pre-deploy.js",
+    "restore": "node scripts/restore-data.js"
   },
   "dependencies": {
     "axios": "^1.13.6",

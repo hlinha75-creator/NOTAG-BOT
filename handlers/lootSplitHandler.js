@@ -16,6 +16,7 @@ const path = require('path');
 const Database = require('../utils/database');
 const XpHandler = require('./xpHandler');
 const XpEventHandler = require('./xpEventHandler');
+const EventSaldoPanelHandler = require('./eventSaldoPanelHandler');
 
 /**
  * Handler para divisão de loot (LootSplit)
@@ -1278,6 +1279,13 @@ class LootSplitHandler {
 
       // ✅ ATUALIZAR PAINEL DE SALDO APÓS ARQUIVAMENTO
       await this.updateGuildBalancePanel(interaction.guild);
+
+      // ✅ ATUALIZAR PAINEL DE SALDO DOS ÚLTIMOS 7 EVENTOS
+      try {
+        await EventSaldoPanelHandler.update(interaction.guild);
+      } catch (e) {
+        console.error('[LootSplit] Erro ao atualizar painel de saldo dos eventos:', e);
+      }
 
       // Criar embed de confirmação do arquivamento com info de XP
       const embedArquivamento = new EmbedBuilder()

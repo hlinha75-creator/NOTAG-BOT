@@ -1,9 +1,29 @@
-data/
+# =============================================
+# ARQUIVOS DE DADOS — NUNCA versionar
+# O banco SQLite e todos os JSONs de runtime
+# contêm saldos e estado ao vivo do bot.
+# Um git pull/push NÃO deve sobrescrever esses arquivos.
+# =============================================
+
+# Banco de dados SQLite (CRÍTICO — contém todos os saldos)
 *.db
-*.csv
-active_raids.json
-finished_events.json
-pending_finance.json
-simulations.json
+*.db-shm
+*.db-wal
+
+# Pasta inteira de dados de runtime
+data/
+
+# Dependências
 node_modules/
+
+# Variáveis de ambiente
 .env
+.env.*
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários do sistema
+.DS_Store
+Thumbs.db

@@ -219,6 +219,7 @@ const MarketHandler = require('./handlers/marketHandler');
 const MarketApi = require('./handlers/albionMarketApi');
 const BalancePanelHandler = require('./handlers/balancePanelHandler');
 const AdminPanelHandler = require('./handlers/adminPanelHandler');
+const EventSaldoPanelHandler = require('./handlers/eventSaldoPanelHandler');
 
 // ==================== IMPORTAR COMANDOS ====================
 const instalarCommand = require('./commands/instalar');
@@ -424,6 +425,16 @@ client.once(Events.ClientReady, async () => {
  await AdminPanelHandler.setupChannel(guild);
  } catch (err) {
  console.error(`❌ Erro ao configurar painel admin na guild ${guild.name}:`, err.message);
+ }
+ }
+
+ // 📊 Atualizar painel de saldo dos últimos 7 eventos ao iniciar
+ for (const guild of client.guilds.cache.values()) {
+ try {
+ await EventSaldoPanelHandler.update(guild);
+ console.log(`📊 Painel de saldo dos eventos atualizado para: ${guild.name}`);
+ } catch (err) {
+ console.error(`❌ Erro ao atualizar painel de saldo dos eventos em ${guild.name}:`, err.message);
  }
  }
 
