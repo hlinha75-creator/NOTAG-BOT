@@ -646,24 +646,27 @@ class DatabaseManager {
  }
  }
 
- async getEventHistory(guildId, limit = 50) {
- try {
- const rows = await this.db.allAsync(`
- SELECT * FROM event_history
- WHERE guild_id = ?
- ORDER BY timestamp DESC
- LIMIT ?
- `, [guildId, limit]);
+   // ============================================================
+   // SUBSTITUIR APENAS ESTA FUNÇÃO no utils/database.js
+   // Localizar: async getEventHistory(guildId, limit = 7)
+   // ============================================================
 
- return rows.map(row => ({
- ...row,
- dados: JSON.parse(row.dados || '{}')
- }));
- } catch (error) {
- console.error('[Database] Error getting event history:', error);
- return [];
- }
- }
+   async getEventHistory(guildId, limit = null) {
+     if (limit) {
+       return await this.db.allAsync(`
+         SELECT * FROM event_history
+         WHERE guild_id = ?
+         ORDER BY timestamp DESC
+         LIMIT ?
+       `, [guildId, limit]);
+     }
+
+     return await this.db.allAsync(`
+       SELECT * FROM event_history
+       WHERE guild_id = ?
+       ORDER BY timestamp DESC
+     `, [guildId]);
+   }
 
  // ==================== AUDIT ====================
 
