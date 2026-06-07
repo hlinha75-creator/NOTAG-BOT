@@ -1,26 +1,26 @@
 {
   "name": "notag-bot",
-  "version": "2.0.0",
-  "description": "NOTAG Bot - Sistema completo de gerenciamento de guild Albion Online",
-  "main": "index.js",
+  "version": "1.0.0",
+  "description": "Bot Discord da guild Notag para eventos, loot split, registro e saldos.",
+  "main": "src/index.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "db:migrate": "node scripts/migrate.js"
+    "start": "node --no-warnings src/index.js",
+    "deploy:commands": "node --no-warnings scripts/deployCommands.js",
+    "clear:commands": "node --no-warnings scripts/clearCommands.js",
+    "audit:channels": "node --no-warnings scripts/auditChannels.js",
+    "audit:nicks": "node --no-warnings scripts/auditNicks.js",
+    "rename:channels": "node --no-warnings scripts/renameChannels.js",
+    "backup:db": "node --no-warnings scripts/backupDatabase.js",
+    "restore:db": "node --no-warnings scripts/restoreDatabase.js"
   },
   "dependencies": {
-    "axios": "^1.13.6",
-    "chart.js": "^4.5.1",
-    "discord.js": "^14.25.1",
-    "dotenv": "^16.6.1",
-    "googleapis": "^171.4.0",
-    "sqlite3": "^5.1.7",
-    "winston": "^3.19.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@discordjs/builders": "^1.8.2",
+    "better-sqlite3": "^11.9.1",
+    "discord.js": "^14.15.3",
+    "dotenv": "^16.4.5"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
